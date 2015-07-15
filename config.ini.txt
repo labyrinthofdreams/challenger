@@ -1,0 +1,7 @@
+[forum]
+; forum username
+username=
+; forum password
+password=
+; forum thread id
+threadid= 
