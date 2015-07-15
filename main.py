@@ -1,5 +1,6 @@
 import ConfigParser
 import datetime
+import pickle
 import re
 import bs4
 import jinja2
@@ -73,8 +74,8 @@ if __name__ == '__main__':
     try:
         login(USERNAME, PASSWORD)
         num_pages = get_page_count(THREADID)
-        # Iterate all new pages since last visit and get all new posts
         all_posts = []
+        # Iterate all new pages since last visit and get all new posts
         for page in range(LASTPAGE, num_pages + 1):
             # Get all posts from the page  
             posts = get_posts(THREADID, page)
@@ -94,15 +95,33 @@ if __name__ == '__main__':
                 # Otherwise, skip processed posts
                 all_posts.extend(posts[idx + 1:])
         # Now that we have all the new posts, we can find the updates
-        rx = re.compile('\\[spoiler="total:\\s*([0-9]+)"\\]', re.IGNORECASE) 
+        # Get previous users and their seen film numbers
+        pickle_file = open('data.pkl', 'rb')
+        stats = pickle.load(pickle_file)
+        pickle_file.close()
+        rx = re.compile('\\[spoiler=".*([0-9]+)"\\]', re.IGNORECASE) 
         for post in all_posts:
             result = rx.search(post['text'])
             # Don't do anything to posts without the spoiler tag
             if result:
                 # Get seen films for the user. Since this will go through
                 # all new posts, the latest update by the user will be 
-                # asigned without a problem
-                post['seen'] = result.group(1)
+                # assigned without a problem
+                # If user has posted before, update existing data
+                # Otherwise add the new user and seen films
+                idx = get_index(stats, lambda x: x['username'] == post['username'])
+                if idx > -1:
+                    stats[idx]['seen'] = result.group(1)
+                else: 
+                    post['seen'] = result.group(1)
+                    stats.append(post)
+        # Save the last post and page we processed
+        config.set('script', 'lastpost', all_posts[-1]['id'])
+        config.set('script', 'lastpage', num_pages)
+        # Save the user data
+        out = open('data.pkl', 'wb')
+        pickle.dump(stats, out)
+        out.close()
     except Exception, e:
         import traceback
         traceback.format_exc()
