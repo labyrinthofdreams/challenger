@@ -14,7 +14,7 @@ USERNAME = config.get('forum', 'username')
 PASSWORD = config.get('forum', 'password')
 THREADID = config.getint('forum', 'threadid')
 LASTPAGE = config.getint('script', 'lastpage')
-LASTPOST = config.getint('script', 'lastpost')
+LASTPOST = config.get('script', 'lastpost')
 
 def get_page_count(thread_id):
     """Returns the number of pages in a thread as an integer"""
@@ -42,6 +42,7 @@ def get_posts(thread_id, page):
         post = {}
         post['id'] = row.get('id')
         post['text'] = table.find('tr', id=post['id']).next_sibling.string
+        post['username'] = row.find('a', class_='member').string
         posts.append(post)
     return posts
 
@@ -62,14 +63,46 @@ def login(username, password):
     elif len(resp.cookies) == 0:
         raise Exception(u'Login failed. Invalid username and/or password')
         
+def get_index(iterable, fun):
+    for i in range(0, len(iterable)):
+            if fun(iterable[i]):
+                    return i
+    return -1        
+        
 if __name__ == '__main__':
     try:
         login(USERNAME, PASSWORD)
         num_pages = get_page_count(THREADID)
-        # Iterate all new pages since last visit
+        # Iterate all new pages since last visit and get all new posts
+        all_posts = []
         for page in range(LASTPAGE, num_pages + 1):
             # Get all posts from the page  
-            posts = get_posts(THREADID, page)          
+            posts = get_posts(THREADID, page)
+            if not posts:
+                # This may occur for instance if an admin has removed posts
+                # So we print the error, break from the loop (since there's
+                # no sense checking the later pages), and then process the
+                # posts we already found
+                print 'Could not find any posts'
+                break 
+            # Does this page have the last processed post?
+            idx = get_index(posts, lambda x: x['id'] == LASTPOST)
+            if idx == -1:
+                # If not, extend all posts
+                all_posts.extend(posts)   
+            else:
+                # Otherwise, skip processed posts
+                all_posts.extend(posts[idx + 1:])
+        # Now that we have all the new posts, we can find the updates
+        rx = re.compile('\\[spoiler="total:\\s*([0-9]+)"\\]', re.IGNORECASE) 
+        for post in all_posts:
+            result = rx.search(post['text'])
+            # Don't do anything to posts without the spoiler tag
+            if result:
+                # Get seen films for the user. Since this will go through
+                # all new posts, the latest update by the user will be 
+                # asigned without a problem
+                post['seen'] = result.group(1)
     except Exception, e:
         import traceback
         traceback.format_exc()
