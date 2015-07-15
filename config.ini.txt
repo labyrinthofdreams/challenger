@@ -5,3 +5,8 @@ username=
 password=
 ; forum thread id
 threadid= 
+
+[script]
+; DO NOT MODIFY!
+lastpage=0
+lastpost=0     

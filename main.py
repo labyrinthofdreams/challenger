@@ -1,5 +1,6 @@
 import ConfigParser
 import datetime
+import re
 import bs4
 import jinja2
 import requests
@@ -11,7 +12,9 @@ config.read('config.ini')
 
 USERNAME = config.get('forum', 'username')
 PASSWORD = config.get('forum', 'password')
-THREADID = config.get('forum', 'threadid')
+THREADID = config.getint('forum', 'threadid')
+LASTPAGE = config.getint('script', 'lastpage')
+LASTPOST = config.getint('script', 'lastpost')
 
 def get_page_count(thread_id):
     """Returns the number of pages in a thread as an integer"""
@@ -24,7 +27,23 @@ def get_page_count(thread_id):
     # Get last <li> element
     li = pages.find_all('li')[-1]
     return int(li.string)
-        
+    
+def get_posts(thread_id, page):
+    """Returns all the posts in a given thread_id on a given page"""
+    url = 'http://s15.zetaboards.com/iCheckMovies/topic/{0}/{1}?x=25'.format(thread_id, page)
+    response = session.get(url)
+    html = bs4.BeautifulSoup(response.text, 'html.parser')
+    table = html.find('table', {'id':'topic_viewer'})
+    if not table:
+        raise Exception('Could not find table')
+    posts = []
+    rows = table.find_all('tr', id=re.compile('post-[0-9]{7}'))
+    for row in rows:
+        post = {}
+        post['id'] = row.get('id')
+        post['text'] = table.find('tr', id=post['id']).next_sibling.string
+        posts.append(post)
+    return posts
 
 def login(username, password):
     if username is None or password is None:
@@ -47,6 +66,10 @@ if __name__ == '__main__':
     try:
         login(USERNAME, PASSWORD)
         num_pages = get_page_count(THREADID)
+        # Iterate all new pages since last visit
+        for page in range(LASTPAGE, num_pages + 1):
+            # Get all posts from the page  
+            posts = get_posts(THREADID, page)          
     except Exception, e:
         import traceback
         traceback.format_exc()
