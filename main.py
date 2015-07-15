@@ -94,11 +94,16 @@ if __name__ == '__main__':
             else:
                 # Otherwise, skip processed posts
                 all_posts.extend(posts[idx + 1:])
+        if len(all_posts) == 0:
+            raise Exception('No new posts')
         # Now that we have all the new posts, we can find the updates
         # Get previous users and their seen film numbers
-        pickle_file = open('data.pkl', 'rb')
-        stats = pickle.load(pickle_file)
-        pickle_file.close()
+        stats = []
+        with open('data.pkl', 'w+') as pickle_file:
+            try:
+                stats = pickle.load(pickle_file)
+            except EOFError, e:
+                pass
         rx = re.compile('\\[spoiler=".*([0-9]+)"\\]', re.IGNORECASE) 
         for post in all_posts:
             result = rx.search(post['text'])
@@ -118,10 +123,11 @@ if __name__ == '__main__':
         # Save the last post and page we processed
         config.set('script', 'lastpost', all_posts[-1]['id'])
         config.set('script', 'lastpage', num_pages)
+        with open('config.ini', 'wb') as out:
+            config.write(out)
         # Save the user data
-        out = open('data.pkl', 'wb')
-        pickle.dump(stats, out)
-        out.close()
+        with open('data.pkl', 'wb') as out:
+            pickle.dump(stats, out)
     except Exception, e:
         import traceback
         traceback.format_exc()
