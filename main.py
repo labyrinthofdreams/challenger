@@ -13,6 +13,19 @@ USERNAME = config.get('forum', 'username')
 PASSWORD = config.get('forum', 'password')
 THREADID = config.get('forum', 'threadid')
 
+def get_page_count(thread_id):
+    """Returns the number of pages in a thread as an integer"""
+    url = 'http://s15.zetaboards.com/iCheckMovies/topic/{0}/1?x=25'.format(thread_id)
+    response = session.get(url)
+    html = bs4.BeautifulSoup(response.text, 'html.parser')
+    pages = html.find('ul', class_='cat-pages')
+    if not pages:
+        return 1
+    # Get last <li> element
+    li = pages.find_all('li')[-1]
+    return int(li.string)
+        
+
 def login(username, password):
     if username is None or password is None:
         raise Exception(u'Username and password must be set')
@@ -33,6 +46,7 @@ def login(username, password):
 if __name__ == '__main__':
     try:
         login(USERNAME, PASSWORD)
+        num_pages = get_page_count(THREADID)
     except Exception, e:
         import traceback
         traceback.format_exc()
