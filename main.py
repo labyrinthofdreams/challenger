@@ -245,7 +245,7 @@ def check_posts(sc, delay):
         print render
     except Exception, e:
         print 'Error:', str(e)
-    sc.enter(30, 1, check_posts, (sc, delay))
+    sc.enter(delay, 1, check_posts, (sc, delay))
 
 if __name__ == '__main__':
     try:
