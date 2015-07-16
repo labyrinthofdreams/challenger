@@ -20,6 +20,20 @@ THREADID = config.getint('forum', 'threadid')
 LASTPAGE = config.getint('script', 'lastpage')
 LASTPOST = config.get('script', 'lastpost')
 
+def find_posts(html):
+    table = html.find('table', {'id':'topic_viewer'})
+    if not table:
+        raise Exception('Could not find table')
+    posts = []
+    rows = table.find_all('tr', id=re.compile('post-[0-9]{7}'))
+    for row in rows:
+        post = {}
+        post['id'] = row.get('id')
+        post['text'] = table.find('tr', id=row.get('id')).find_next_sibling().find('td', class_='c_post')
+        post['username'] = row.find('a', class_='member').string
+        posts.append(post)
+    return posts
+
 def get_page_count(thread_id):
     """Returns the number of pages in a thread as an integer"""
     url = 'http://s15.zetaboards.com/iCheckMovies/topic/{0}/1?x=25'.format(thread_id)
@@ -37,18 +51,7 @@ def get_posts(thread_id, page):
     url = 'http://s15.zetaboards.com/iCheckMovies/topic/{0}/{1}?x=25'.format(thread_id, page)
     response = session.get(url)
     html = bs4.BeautifulSoup(response.text, 'html.parser')
-    table = html.find('table', {'id':'topic_viewer'})
-    if not table:
-        raise Exception('Could not find table')
-    posts = []
-    rows = table.find_all('tr', id=re.compile('post-[0-9]{7}'))
-    for row in rows:
-        post = {}
-        post['id'] = row.get('id')
-        post['text'] = table.find('tr', id=row.get('id')).find_next_sibling().find('td', class_='c_post')
-        post['username'] = row.find('a', class_='member').string
-        posts.append(post)
-    return posts
+    return find_posts(html)
 
 def login(username, password):
     if username is None or password is None:
@@ -139,6 +142,16 @@ def get_highest_number(text):
             if match > highest:
                 highest = match
     return highest
+    
+def rescan_post(thread_id, post_id):
+    url = 'http://s15.zetaboards.com/iCheckMovies/single/?p={0}&t={1}'.format(post_id, thread_id)
+    response = session.get(url)
+    html = bs4.BeautifulSoup(response.text, 'html.parser')
+    posts = find_posts(html)
+    if not posts:
+        raise Exception('Could not find a post')
+    post = posts[0]       
+    return post    
         
 if __name__ == '__main__':
     try:
@@ -175,9 +188,16 @@ if __name__ == '__main__':
                 stats = json.loads(json_file.readline())
             except Exception, e:
                 print 'Error loading JSON:', str(e)
+        rescans = []
+        rescan_rx = re.compile('!rescan ([0-9]{7})')
         for post in all_posts:
             seen_films = get_highest_number(post['text']) 
             if seen_films == 0:
+                # If there's no spoiler tag in this post with seen films
+                # then check if it's a rescan command
+                match = rescan_rx.search(unicode(post['text']))
+                if match:
+                    rescans.append(match.group(1))
                 continue           
             # Get seen films for the user. Since this will go through
             # all new posts, the latest update by the user will be 
@@ -192,6 +212,15 @@ if __name__ == '__main__':
                 user['username'] = post['username']
                 user['seen'] = seen_films
                 stats.append(user)
+        # Do the schedules rescans
+        for post_id in rescans:
+            post = rescan_post(THREADID, post_id)
+            highest = get_highest_number(post['text'])
+            if highest == 0:
+                continue
+            idx = get_index(stats, lambda x: x['username'] == post['username'])
+            if idx > -1:
+                stats[idx]['seen'] = highest
         # Save the last post and page we processed
         config.set('script', 'lastpost', all_posts[-1]['id'])
         config.set('script', 'lastpage', num_pages)
