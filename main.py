@@ -22,9 +22,9 @@ LASTPOST = config.get('script', 'lastpost')
 
 def find_posts(html):
     table = html.find('table', {'id':'topic_viewer'})
-    if not table:
-        raise Exception('Could not find table')
     posts = []
+    if not table:
+        return posts
     rows = table.find_all('tr', id=re.compile('post-[0-9]{7}'))
     for row in rows:
         post = {}
@@ -144,14 +144,16 @@ def get_highest_number(text):
     return highest
     
 def rescan_post(thread_id, post_id):
+    """Fetches the post with post_id in thread_id
+        
+    Returns None on failure and a bs4 object on success"""
     url = 'http://s15.zetaboards.com/iCheckMovies/single/?p={0}&t={1}'.format(post_id, thread_id)
     response = session.get(url)
     html = bs4.BeautifulSoup(response.text, 'html.parser')
-    posts = find_posts(html)
+    posts = find_posts(html) 
     if not posts:
-        raise Exception('Could not find a post')
-    post = posts[0]       
-    return post    
+        return None
+    return posts[0] 
         
 if __name__ == '__main__':
     try:
@@ -212,9 +214,11 @@ if __name__ == '__main__':
                 user['username'] = post['username']
                 user['seen'] = seen_films
                 stats.append(user)
-        # Do the schedules rescans
+        # Do the scheduled rescans
         for post_id in rescans:
             post = rescan_post(THREADID, post_id)
+            if not post:
+                continue
             highest = get_highest_number(post['text'])
             if highest == 0:
                 continue
