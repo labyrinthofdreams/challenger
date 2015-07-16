@@ -120,26 +120,17 @@ def submit_post(text, forum_id, thread_id, post_id):
     except:
         raise
         
-def get_highest_number(text):
-    """Given a bs4 object will get the largest number followed by a period
-        inside the last [spoiler][/spoiler] tag"""
-    if not text:
+def get_highest_number(html):
+    """Given a bs4 object will get the largest number followed by a period"""
+    if not html:
         raise Exception('text parameter must not be None')    
-    # Check for a line starting with a number inside a spoiler tag
-    # Find spoiler tags
-    tags = text.find_all('div', class_='spoiler_toggle')    
-    if not tags:
-        return 0
-    # Select the LAST spoiler tag, because sometimes people might put reviews
-    # in spoiler tags
-    tag = tags[-1]
-    spoiler_text_tag = tag.find_next_sibling()
-    spoiler_text = unicode(spoiler_text_tag).replace('<br/>', '\n')
-    rx2 = re.compile('^([0-9]+)\\.', re.IGNORECASE)
+    # Find lines starting with a number and pick the largest number
+    text = unicode(html).replace('<br/>', '\n')
+    rx = re.compile('^([0-9]+)\\.+')
     highest = 0
-    lines = spoiler_text.split('\n')
+    lines = text.split('\n')
     for line in lines:
-        result = rx2.match(line)
+        result = rx.match(line)
         if result:
             match = int(result.group(1))
             if match > highest:
@@ -198,8 +189,7 @@ if __name__ == '__main__':
         for post in all_posts:
             seen_films = get_highest_number(post['text']) 
             if seen_films == 0:
-                # If there's no spoiler tag in this post with seen films
-                # then check if it's a rescan command
+                # If there's no valid films in this post check if it's a rescan post
                 match = rescan_rx.search(unicode(post['text']))
                 if match:
                     rescans.append(match.group(1))
