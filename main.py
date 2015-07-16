@@ -21,6 +21,9 @@ LASTPAGE = config.getint('script', 'lastpage')
 LASTPOST = config.get('script', 'lastpost')
 
 def find_posts(html):
+    """Finds all posts in the given bs4 html object
+    
+    Returns empty list if finds none, otherwise a list of all found posts"""
     table = html.find('table', {'id':'topic_viewer'})
     posts = []
     if not table:
