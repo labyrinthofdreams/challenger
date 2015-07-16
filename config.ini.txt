@@ -5,6 +5,8 @@ username=
 password=
 ; forum thread id
 threadid= 
+; forum id
+forumid=
 
 [script]
 ; DO NOT MODIFY!
