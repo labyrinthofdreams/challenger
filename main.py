@@ -2,11 +2,15 @@ import ConfigParser
 import datetime
 import json
 import re
+import sched
+import time
 import bs4
 import jinja2
 import requests
 
 session = requests.Session()
+
+scheduler = sched.scheduler(time.time, time.sleep)
 
 jinja = jinja2.Environment(loader=jinja2.FileSystemLoader(u'template'))
 
@@ -19,6 +23,7 @@ FORUMID = config.getint('forum', 'forumid')
 THREADID = config.getint('forum', 'threadid')
 LASTPAGE = config.getint('script', 'lastpage')
 LASTPOST = config.get('script', 'lastpost')
+DELAY = config.getint('script', 'delay')
 
 def find_posts(html):
     """Finds all posts in the given bs4 html object
@@ -148,10 +153,12 @@ def rescan_post(thread_id, post_id):
     if not posts:
         return None
     return posts[0] 
-        
-if __name__ == '__main__':
+    
+def check_posts(sc, delay):
+    global THREADID
+    global LASTPAGE
+    global LASTPOST
     try:
-        login(USERNAME, PASSWORD)
         num_pages = get_page_count(THREADID)
         all_posts = []
         # Iterate all new pages since last visit and get all new posts
@@ -219,6 +226,8 @@ if __name__ == '__main__':
             if idx > -1:
                 stats[idx]['seen'] = highest
         # Save the last post and page we processed
+        LASTPAGE = num_pages
+        LASTPOST = all_posts[-1]['id']
         config.set('script', 'lastpost', all_posts[-1]['id'])
         config.set('script', 'lastpage', num_pages)
         with open('config.ini', 'wb') as out:
@@ -234,6 +243,15 @@ if __name__ == '__main__':
         render = tpl.render(entries=stats)
         #submit_post(render, THREADID, )
         print render
+    except Exception, e:
+        print 'Error:', str(e)
+    sc.enter(30, 1, check_posts, (sc, delay))
+
+if __name__ == '__main__':
+    try:
+        login(USERNAME, PASSWORD)
+        scheduler.enter(0, 1, check_posts, (scheduler, DELAY))
+        scheduler.run()
     except Exception, e:
         import traceback
         traceback.format_exc()

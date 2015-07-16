@@ -12,3 +12,4 @@ forumid=
 ; DO NOT MODIFY!
 lastpage=0
 lastpost=     
+delay=300
