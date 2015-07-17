@@ -132,14 +132,14 @@ def get_highest_number(html):
     if not html:
         raise Exception('text parameter must not be None')    
     # Find lines starting with a number and pick the largest number
-    text = unicode(html).replace('<br/>', '\n')
+    text = unicode(html).strip().replace('<br/>', '\n')
     # Matches: 123. film title
     rx = re.compile('^([0-9]+)\\.\\s+')
     # Matches: 12-13. film title & 12.-13. film title
     rx2 = re.compile('^[0-9]+\\.?\\-([0-9]+)\\.\\s+')
     highest = 0
-    lines = text.split('\n')
-    for line in lines:
+    lines = [line.strip() for line in text.split('\n')]
+    for line in lines:        
         result = rx.match(line)
         if not result:
             result = rx2.match(line)
