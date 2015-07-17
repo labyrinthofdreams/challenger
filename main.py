@@ -1,6 +1,7 @@
 import ConfigParser
 import datetime
 import json
+import os.path
 import re
 import sched
 import time
@@ -17,6 +18,7 @@ jinja = jinja2.Environment(loader=jinja2.FileSystemLoader(u'template'))
 config = ConfigParser.RawConfigParser()
 config.read('config.ini')
 
+FORUMURL = config.get('forum', 'url')
 USERNAME = config.get('forum', 'username')
 PASSWORD = config.get('forum', 'password')
 FORUMID = config.getint('forum', 'forumid')
@@ -44,7 +46,7 @@ def find_posts(html):
 
 def get_page_count(thread_id):
     """Returns the number of pages in a thread as an integer"""
-    url = 'http://s15.zetaboards.com/iCheckMovies/topic/{0}/1?x=25'.format(thread_id)
+    url = os.path.join(FORUMURL, 'topic/{0}/1?x=25'.format(thread_id))
     response = session.get(url)
     html = bs4.BeautifulSoup(response.text, 'html.parser')
     pages = html.find('ul', class_='cat-pages')
@@ -56,7 +58,7 @@ def get_page_count(thread_id):
     
 def get_posts(thread_id, page):
     """Returns all the posts in a given thread_id on a given page"""
-    url = 'http://s15.zetaboards.com/iCheckMovies/topic/{0}/{1}?x=25'.format(thread_id, page)
+    url = os.path.join(FORUMURL, 'topic/{0}/{1}?x=25'.format(thread_id, page))
     response = session.get(url)
     html = bs4.BeautifulSoup(response.text, 'html.parser')
     return find_posts(html)
@@ -70,7 +72,7 @@ def login(username, password):
             u'tm': datetime.datetime.today().strftime(u'4/4/2014 3:%M:%S PM')
             }
     headers = {u'content-type': u'application/x-www-form-urlencoded'}
-    url = u'http://s15.zetaboards.com/iCheckMovies/login/log_in/'
+    url = os.path.join(FORUMURL, u'login/log_in/')
     resp = session.post(url, data=args, headers=headers, allow_redirects=False)
     if resp.status_code != requests.codes.ok:
         pass
@@ -85,7 +87,7 @@ def get_index(iterable, fun):
     return -1      
     
 def submit_post(text, forum_id, thread_id, post_id):
-    url = 'http://s15.zetaboards.com/iCheckMovies/post/?mode=3&type=1&f={0}&t={1}&p={2}&pg=1&x=25'.format(forum_id, thread_id, post_id)
+    url = os.path.join(FORUMURL, 'post/?mode=3&type=1&f={0}&t={1}&p={2}&pg=1&x=25'.format(forum_id, thread_id, post_id))
     response = session.get(url)
     html = bs4.BeautifulSoup(response.text, 'html.parser')
     params = {'mode': html.find('input', attrs={'name':'mode'})['value'],
@@ -115,7 +117,7 @@ def submit_post(text, forum_id, thread_id, post_id):
               }
     headers = {u'content-type': u'application/x-www-form-urlencoded'}  
     try:
-        posturl = 'http://s15.zetaboards.com/iCheckMovies/post/'
+        posturl = os.path.join(FORUMURL, 'post/')
         response = session.post(posturl, data=params, headers=headers, cookies=session.cookies)
         if response.status_code != requests.codes.ok:
             raise response.raise_for_status()

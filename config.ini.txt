@@ -1,4 +1,6 @@
 [forum]
+; forum url
+url=http://s15.zetaboards.com/iCheckMovies/
 ; forum username
 username=
 ; forum password
