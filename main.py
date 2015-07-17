@@ -201,8 +201,7 @@ def load_stats(filename):
         return stats
     with open(filename, 'rb') as json_file:
         try:
-            for line in json_file:
-                stats.append(json.loads(line))
+            stats = json.loads(json_file.readline())
         except Exception, e:
             print 'Error loading JSON:', str(e)
     return stats
