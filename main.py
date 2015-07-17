@@ -145,19 +145,23 @@ def get_highest_number(html):
             match = int(result.group(1))
             if match > highest:
                 highest = match
-    return highest
+    return highest          
     
-def rescan_post(thread_id, post_id):
-    """Fetches the post with post_id in thread_id
+def parse_overwrite(html):
+    """Parses the value following the !overwrite command.
         
-    Returns None on failure and a bs4 object on success"""
-    url = 'http://s15.zetaboards.com/iCheckMovies/single/?p={0}&t={1}'.format(post_id, thread_id)
-    response = session.get(url)
-    html = bs4.BeautifulSoup(response.text, 'html.parser')
-    posts = find_posts(html) 
-    if not posts:
-        return None
-    return posts[0] 
+    The command must be at the start of a line.    
+    
+    Returns the value as an integer or None if it can't find it.
+    """
+    text = unicode(html).replace('<br/>', '\n')
+    lines = text.split('\n')
+    rx = re.compile('^!overwrite ([0-9]+)')
+    for line in lines:    
+        result = rx.match(line)
+        if result:
+            return int(result.group(1))
+    return None 
     
 def check_posts(sc, delay):
     global THREADID
@@ -196,16 +200,15 @@ def check_posts(sc, delay):
                 stats = json.loads(json_file.readline())
             except Exception, e:
                 print 'Error loading JSON:', str(e)
-        rescans = []
-        rescan_rx = re.compile('!rescan ([0-9]{7})')
         for post in all_posts:
-            seen_films = get_highest_number(post['text']) 
-            if seen_films == 0:
-                # If there's no valid films in this post check if it's a rescan post
-                match = rescan_rx.search(unicode(post['text']))
-                if match:
-                    rescans.append(match.group(1))
-                continue           
+            # Check for the overwrite command
+            # It overwrites all other values in the post
+            seen_films = parse_overwrite(post['text'])
+            if not seen_films:
+                seen_films = get_highest_number(post['text']) 
+                if seen_films == 0:
+                    # Could not find a seen films number so go to next post
+                    continue           
             # Get seen films for the user. Since this will go through
             # all new posts, the latest update by the user will be 
             # assigned without a problem
@@ -219,17 +222,6 @@ def check_posts(sc, delay):
                 user['username'] = post['username']
                 user['seen'] = seen_films
                 stats.append(user)
-        # Do the scheduled rescans
-        for post_id in rescans:
-            post = rescan_post(THREADID, post_id)
-            if not post:
-                continue
-            highest = get_highest_number(post['text'])
-            if highest == 0:
-                continue
-            idx = get_index(stats, lambda x: x['username'] == post['username'])
-            if idx > -1:
-                stats[idx]['seen'] = highest
         # Save the last post and page we processed
         LASTPAGE = num_pages
         LASTPOST = all_posts[-1]['id']
