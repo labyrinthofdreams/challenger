@@ -158,9 +158,9 @@ def parse_overwrite(html):
     """
     text = unicode(html).replace('<br/>', '\n')
     lines = text.split('\n')
-    rx = re.compile('^!overwrite ([0-9]+)')
+    rx = re.compile('!overwrite ([0-9]+)')
     for line in lines:    
-        result = rx.match(line)
+        result = rx.search(line)
         if result:
             return int(result.group(1))
     return None
