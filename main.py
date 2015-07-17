@@ -161,7 +161,63 @@ def parse_overwrite(html):
         result = rx.match(line)
         if result:
             return int(result.group(1))
-    return None 
+    return None
+    
+def fetch_new_posts(thread_id, first_page, last_page, start_from):
+    """Fetches all new posts between first_page and last_page
+    
+    Returns a list of all posts, or an empty list if there's no posts"""
+    all_posts = []
+    # Iterate all new pages since last visit and get all new posts
+    for page in range(first_page, last_page):
+        print 'Querying page', page
+        # Get all posts from the page  
+        posts = get_posts(thread_id, page)
+        if not posts:
+            # This may occur for instance if an admin has removed posts
+            # So we print the error, break from the loop (since there's
+            # no sense checking the later pages), and then process the
+            # posts we already found
+            print 'Could not find any posts'
+            break 
+        # Does this page have the last processed post?
+        idx = get_index(posts, lambda x: x['id'] == start_from)
+        if idx == -1:
+            # If not, extend all posts
+            all_posts.extend(posts)   
+        else:
+            # Otherwise, skip processed posts
+            all_posts.extend(posts[idx + 1:])
+    return all_posts
+    
+def load_stats(filename):
+    """Loads previous data about users and seen films from filename
+    
+    Returns a list of all user data or an empty list if there's no data"""
+    stats = []
+    with open(filename, 'w+') as json_file:
+        try:
+            stats = json.loads(json_file.readline())
+        except Exception, e:
+            print 'Error loading JSON:', str(e)
+    return stats
+    
+def save_stats(filename, data):
+    """Saves data about users and seen films in filename"""
+    with open(filename, 'wb') as out:
+        try:
+            out.write(json.dumps(data))
+        except Exception, e:
+            print 'Error saving:', str(e)
+    
+def get_seen_films(html):
+    """Gets a seen films number from a post
+    
+    Returns the seen films number as an integer or 0 if there's no films"""
+    seen_films = parse_overwrite(html)
+    if not seen_films:
+        seen_films = get_highest_number(html)
+    return seen_films
     
 def check_posts(sc, delay):
     global THREADID
@@ -169,46 +225,19 @@ def check_posts(sc, delay):
     global LASTPOST
     try:
         num_pages = get_page_count(THREADID)
-        all_posts = []
-        # Iterate all new pages since last visit and get all new posts
-        for page in range(LASTPAGE, num_pages + 1):
-            print 'Querying page', page
-            # Get all posts from the page  
-            posts = get_posts(THREADID, page)
-            if not posts:
-                # This may occur for instance if an admin has removed posts
-                # So we print the error, break from the loop (since there's
-                # no sense checking the later pages), and then process the
-                # posts we already found
-                print 'Could not find any posts'
-                break 
-            # Does this page have the last processed post?
-            idx = get_index(posts, lambda x: x['id'] == LASTPOST)
-            if idx == -1:
-                # If not, extend all posts
-                all_posts.extend(posts)   
-            else:
-                # Otherwise, skip processed posts
-                all_posts.extend(posts[idx + 1:])
+        all_posts = fetch_new_posts(THREADID, LASTPAGE, num_pages + 1, LASTPOST)
         if len(all_posts) == 0:
             raise Exception('No new posts')
         # Now that we have all the new posts, we can find the updates
         # Get previous users and their seen film numbers
-        stats = []
-        with open('data.json', 'w+') as json_file:
-            try:
-                stats = json.loads(json_file.readline())
-            except Exception, e:
-                print 'Error loading JSON:', str(e)
+        stats = load_stats('data.json')
         for post in all_posts:
             # Check for the overwrite command
             # It overwrites all other values in the post
-            seen_films = parse_overwrite(post['text'])
-            if not seen_films:
-                seen_films = get_highest_number(post['text']) 
-                if seen_films == 0:
-                    # Could not find a seen films number so go to next post
-                    continue           
+            seen_films = get_seen_films(post['text'])
+            if seen_films == 0:
+                # Could not find a seen films number so go to next post
+                continue           
             # Get seen films for the user. Since this will go through
             # all new posts, the latest update by the user will be 
             # assigned without a problem
@@ -230,11 +259,7 @@ def check_posts(sc, delay):
         with open('config.ini', 'wb') as out:
             config.write(out)
         # Save the user data
-        with open('data.json', 'wb') as out:
-            try:
-                out.write(json.dumps(stats))
-            except Exception, e:
-                print 'Error saving:', str(e)
+        save_stats('data.json', stats)
         # Next we will render the template
         tpl = jinja.get_template(u'template.html')
         render = tpl.render(entries=stats)
