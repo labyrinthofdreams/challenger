@@ -197,9 +197,12 @@ def load_stats(filename):
     
     Returns a list of all user data or an empty list if there's no data"""
     stats = []
-    with open(filename, 'w+') as json_file:
+    if not os.path.exists(filename):
+        return stats
+    with open(filename, 'rb') as json_file:
         try:
-            stats = json.loads(json_file.readline())
+            for line in json_file:
+                stats.append(json.loads(line))
         except Exception, e:
             print 'Error loading JSON:', str(e)
     return stats
