@@ -1,4 +1,6 @@
 *
+!template/
+!template/*.html
 !.gitignore
 !config.ini.txt
 !LICENSE.txt
