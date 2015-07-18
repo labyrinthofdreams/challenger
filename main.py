@@ -231,17 +231,19 @@ def check_posts(sc, delay):
         num_pages = get_page_count(THREADID)
         all_posts = fetch_new_posts(THREADID, LASTPAGE, num_pages + 1, LASTPOST)
         if len(all_posts) == 0:
-            raise Exception('No new posts')
+            raise Exception('No new posts\n')
         # Now that we have all the new posts, we can find the updates
         # Get previous users and their seen film numbers
         stats = load_stats('data.json')
+        has_new_updates = False
         for post in all_posts:
             # Check for the overwrite command
             # It overwrites all other values in the post
             seen_films = get_seen_films(post['text'])
             if seen_films == 0:
                 # Could not find a seen films number so go to next post
-                continue           
+                continue       
+            has_new_updates = True    
             # Get seen films for the user. Since this will go through
             # all new posts, the latest update by the user will be 
             # assigned without a problem
@@ -255,6 +257,8 @@ def check_posts(sc, delay):
                 user['username'] = post['username']
                 user['seen'] = seen_films
                 stats.append(user)
+        if not has_new_updates:
+            print 'No new updates\n'
         # Save the last post and page we processed
         LASTPAGE = num_pages
         LASTPOST = all_posts[-1]['id']
@@ -267,13 +271,18 @@ def check_posts(sc, delay):
             # Save the user data
             save_stats('data.json', stats)
         # Next we will render the template
-        tpl = jinja.get_template(u'template.html')
-        render = tpl.render(entries=stats)
-        if DEBUG == 'off':
-            submit_post(render, FORUMID, THREADID, POSTID)
-            print 'Updated first post'
-        else:
-            print render
+        if has_new_updates:
+            # Only update first post if there's new updates
+            tpl = jinja.get_template(u'template.html')
+            render = tpl.render(entries=stats)
+            if DEBUG == 'off':
+                submit_post(render, FORUMID, THREADID, POSTID)
+                print 'Updated first post\n'
+                for user in stats:
+                    print '{0}: {1}'.format(user['username'], user['seen'])
+                print '\n'
+            else:
+                print render
     except Exception, e:
         print 'Error:', str(e)
     sc.enter(delay, 1, check_posts, (sc, delay))

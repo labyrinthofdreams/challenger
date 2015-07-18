@@ -1,5 +1,7 @@
 1.0.2
 - Only save data when not in debug mode
+- Show a message if there's no new updates
+- Only update the first post if there's new updates
 
 1.0.1
 - Show a message when the first post is updated
