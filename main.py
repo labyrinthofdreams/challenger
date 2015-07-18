@@ -27,6 +27,7 @@ POSTID = config.getint('forum', 'postid')
 LASTPAGE = config.getint('script', 'lastpage')
 LASTPOST = config.get('script', 'lastpost')
 DELAY = config.getint('script', 'delay')
+DEBUG = config.get('script', 'debug')
 
 def find_posts(html):
     """Finds all posts in the given bs4 html object
@@ -266,8 +267,10 @@ def check_posts(sc, delay):
         # Next we will render the template
         tpl = jinja.get_template(u'template.html')
         render = tpl.render(entries=stats)
-        submit_post(render, FORUMID, THREADID, POSTID)
-        print render
+        if DEBUG == 'off':
+            submit_post(render, FORUMID, THREADID, POSTID)
+        else:
+            print render
     except Exception, e:
         print 'Error:', str(e)
     sc.enter(delay, 1, check_posts, (sc, delay))

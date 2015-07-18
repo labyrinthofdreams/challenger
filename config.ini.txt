@@ -13,7 +13,11 @@ forumid=
 postid=
 
 [script]
-; DO NOT MODIFY!
-lastpage=1
-lastpost=     
+; debug may be on or off
+debug=off
+; seconds between each request
 delay=300
+; last scanned page
+lastpage=1
+; last scanned post (id)
+lastpost=     
