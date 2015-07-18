@@ -14,6 +14,6 @@ postid=
 
 [script]
 ; DO NOT MODIFY!
-lastpage=0
+lastpage=1
 lastpost=     
 delay=300
