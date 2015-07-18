@@ -91,8 +91,10 @@ def get_index(iterable, fun):
     return -1      
     
 def submit_post(text, forum_id, thread_id, post_id):
-    url = os.path.join(FORUMURL, 'post/?mode=3&type=1&f={0}&t={1}&p={2}&pg=1&x=25'.format(forum_id, thread_id, post_id))
+    url = os.path.join(FORUMURL, 'post/?mode=3&type=1&f={0}&t={1}&p={2}&pg=1'.format(forum_id, thread_id, post_id))
     response = session.get(url)
+    if response.text.find('<td>You do not have permission to edit this post.<br />') > -1:
+        raise Exception('You do not have permission to edit this post')
     html = bs4.BeautifulSoup(response.text, 'html.parser')
     params = {'mode': html.find('input', attrs={'name':'mode'})['value'],
               'type': html.find('input', attrs={'name':'type'})['value'],
