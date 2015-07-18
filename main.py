@@ -196,7 +196,7 @@ def load_stats(filename):
     """Loads previous data about users and seen films from filename
     
     Returns a list of all user data or an empty list if there's no data"""
-    stats = []
+    stats = {}
     if not os.path.exists(filename):
         return stats
     with open(filename, 'rb') as json_file:
@@ -223,18 +223,29 @@ def get_seen_films(html):
         seen_films = get_highest_number(html)
     return seen_films
     
+def fetch_thread_title(thread_id):
+    """Fetches thread title"""
+    response = session.get(os.path.join(FORUMURL, 'topic/{0}/1/?x=25'.format(thread_id)))
+    html = bs4.BeautifulSoup(response.text, 'html.parser')
+    return html.title.string
+    
 def check_posts(sc, delay):
     global THREADID
     global LASTPAGE
     global LASTPOST
     try:
+        # Get previous users and their seen film numbers
+        stats = load_stats('data.json')
+        if 'title' not in stats:
+            stats['title'] = fetch_thread_title(THREADID)
+        print '=' * len(stats['title']) 
+        print stats['title']
+        print '=' * len(stats['title'])
         num_pages = get_page_count(THREADID)
         all_posts = fetch_new_posts(THREADID, LASTPAGE, num_pages + 1, LASTPOST)
         if len(all_posts) == 0:
             raise Exception('No new posts\n')
         # Now that we have all the new posts, we can find the updates
-        # Get previous users and their seen film numbers
-        stats = load_stats('data.json')
         has_new_updates = False
         for post in all_posts:
             # Check for the overwrite command
@@ -249,14 +260,16 @@ def check_posts(sc, delay):
             # assigned without a problem
             # If user has posted before, update existing data
             # Otherwise add the new user and seen films
-            idx = get_index(stats, lambda x: x['username'] == post['username'])
+            if 'users' not in stats:
+                stats['users'] = []
+            idx = get_index(stats['users'], lambda x: x['username'] == post['username'])
             if idx > -1:
-                stats[idx]['seen'] = seen_films
+                stats['users'][idx]['seen'] = seen_films
             else:
                 user = {}
                 user['username'] = post['username']
                 user['seen'] = seen_films
-                stats.append(user)
+                stats['users'].append(user)
         if not has_new_updates:
             print 'No new updates\n'
         # Save the last post and page we processed
@@ -274,11 +287,11 @@ def check_posts(sc, delay):
         if has_new_updates:
             # Only update first post if there's new updates
             tpl = jinja.get_template(u'template.html')
-            render = tpl.render(entries=stats)
+            render = tpl.render(entries=stats['users'])
             if DEBUG == 'off':
                 submit_post(render, FORUMID, THREADID, POSTID)
                 print 'Updated first post\n'
-                for user in stats:
+                for user in stats['users']:
                     print '{0}: {1}'.format(user['username'], user['seen'])
                 print '\n'
             else:
