@@ -258,12 +258,14 @@ def check_posts(sc, delay):
         # Save the last post and page we processed
         LASTPAGE = num_pages
         LASTPOST = all_posts[-1]['id']
-        config.set('script', 'lastpost', all_posts[-1]['id'])
-        config.set('script', 'lastpage', num_pages)
-        with open('config.ini', 'wb') as out:
-            config.write(out)
-        # Save the user data
-        save_stats('data.json', stats)
+        if DEBUG == 'off':
+            # Only save data when not in debug mode
+            config.set('script', 'lastpost', all_posts[-1]['id'])
+            config.set('script', 'lastpage', num_pages)
+            with open('config.ini', 'wb') as out:
+                config.write(out)
+            # Save the user data
+            save_stats('data.json', stats)
         # Next we will render the template
         tpl = jinja.get_template(u'template.html')
         render = tpl.render(entries=stats)
