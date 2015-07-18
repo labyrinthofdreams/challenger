@@ -269,6 +269,7 @@ def check_posts(sc, delay):
         render = tpl.render(entries=stats)
         if DEBUG == 'off':
             submit_post(render, FORUMID, THREADID, POSTID)
+            print 'Updated first post'
         else:
             print render
     except Exception, e:
