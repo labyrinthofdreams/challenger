@@ -79,7 +79,10 @@ def login(username, password):
         pass
         #raise resp.raise_for_status()
     elif len(resp.cookies) == 0:
-        raise Exception(u'Login failed. Invalid username and/or password')
+        if resp.text.find('You are logged in already') > -1:
+            print 'You\'re already logged in!'
+        else:
+            raise Exception(u'Login failed. Invalid username and/or password')
         
 def get_index(iterable, fun):
     for i in range(0, len(iterable)):
