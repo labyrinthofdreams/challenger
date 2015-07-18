@@ -2,6 +2,7 @@
 !template/
 !template/*.html
 !.gitignore
+!CHANGELOG.txt
 !config.ini.txt
 !LICENSE.txt
 !README.md
