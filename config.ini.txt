@@ -9,6 +9,8 @@ password=
 threadid= 
 ; forum id
 forumid=
+; post id
+postid=
 
 [script]
 ; DO NOT MODIFY!

@@ -23,6 +23,7 @@ USERNAME = config.get('forum', 'username')
 PASSWORD = config.get('forum', 'password')
 FORUMID = config.getint('forum', 'forumid')
 THREADID = config.getint('forum', 'threadid')
+POSTID = config.getint('forum', 'postid')
 LASTPAGE = config.getint('script', 'lastpage')
 LASTPOST = config.get('script', 'lastpost')
 DELAY = config.getint('script', 'delay')
@@ -267,7 +268,7 @@ def check_posts(sc, delay):
         # Next we will render the template
         tpl = jinja.get_template(u'template.html')
         render = tpl.render(entries=stats)
-        #submit_post(render, THREADID, )
+        submit_post(render, FORUMID, THREADID, POSTID)
         print render
     except Exception, e:
         print 'Error:', str(e)
