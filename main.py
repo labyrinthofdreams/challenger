@@ -105,13 +105,6 @@ def submit_post(text, forum_id, thread_id, post_id):
               'title': html.find('input', attrs={'name':'title'})['value'],
               'description': html.find('input', attrs={'name':'description'})['value'],
               'tags': html.find('input', attrs={'name':'tags'})['value'],
-              'meta_time': html.find('input', attrs={'name':'meta_time'})['value'],
-              'meta_diff': html.find('input', attrs={'name':'meta_diff'})['value'],
-              'meta_tz': html.find('input', attrs={'name':'meta_tz'})['value'],
-              'meta_plug': html.find('input', attrs={'name':'meta_plug'})['value'],
-              'meta_mime': html.find('input', attrs={'name':'meta_mime'})['value'],
-              'meta_x': html.find('input', attrs={'name':'meta_x'})['value'],
-              'meta_y': html.find('input', attrs={'name':'meta_y'})['value'], 
               'sig': html.find('input', attrs={'name':'sig'})['value'],
               'emo': html.find('input', attrs={'name':'emo'})['value'],
               'post': text              
