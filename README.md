@@ -15,8 +15,8 @@ variables under each section.
 The program will scan every page in a given thread. For each post it will 
 attempt to find lines that begin with the following patterns:
 
-5. Citizen Kane
-6-7. City Lights, The Gold Rush
+5. Citizen Kane<br>
+6-7. City Lights, The Gold Rush<br>
 8.-9. Rear Window, Vertigo
 
 If a user makes a mistake they may post a new comment that includes 
