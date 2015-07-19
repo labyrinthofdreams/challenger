@@ -245,6 +245,8 @@ def check_posts(sc, delay, threads, index):
                     thread = {}
                     thread['forum_id'] = forum_id
                     threads[thread_id] = thread
+        if len(threads) == 0:
+            raise ChallengerException('Could not find any threads')
         # Process current thread
         thread_id, thread = threads.items()[index]
         index = index + 1
