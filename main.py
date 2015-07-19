@@ -171,7 +171,7 @@ def fetch_new_posts(thread_id, first_page, last_page, start_from):
     all_posts = []
     # Iterate all new pages since last visit and get all new posts
     for page in range(first_page, last_page):
-        print 'Querying page {0}/{1}'.format(page, last_page - 1)
+        print 'Querying page {0} of {1}'.format(page, last_page - 1)
         # Get all posts from the page  
         posts = get_posts(thread_id, page)
         if not posts:
