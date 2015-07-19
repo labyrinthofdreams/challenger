@@ -1,23 +1,22 @@
 [forum]
 ; forum url
-url=http://s15.zetaboards.com/iCheckMovies/
+url = http://s15.zetaboards.com/example/
 ; forum username
-username=
+username = example
 ; forum password
-password=
-; forum thread id
-threadid= 
-; forum id
-forumid=
-; post id
-postid=
+password = example 
 
 [script]
-; debug may be on or off
-debug=off
-; seconds between each request
-delay=300
-; last scanned page
-lastpage=1
-; last scanned post (id)
-lastpost=     
+; enable debugging: on
+; disable debugging: off
+debug = off
+; seconds to wait before processing the thread queue 
+delay = 900
+
+; to add a new thread create another section where the section name
+; follows the pattern threadN where N is a number
+[thread0]
+; thread id
+threadid = 
+; forum id
+forumid = 

@@ -21,8 +21,6 @@ config.read('config.ini')
 FORUMURL = config.get('forum', 'url')
 USERNAME = config.get('forum', 'username')
 PASSWORD = config.get('forum', 'password')
-FORUMID = config.getint('forum', 'forumid')
-THREADID = config.getint('forum', 'threadid')
 DELAY = config.getint('script', 'delay')
 DEBUG = config.get('script', 'debug')
 
@@ -220,26 +218,45 @@ def get_seen_films(html):
         seen_films = get_highest_number(html)
     return seen_films
     
-def check_posts(sc, delay):
-    global THREADID
+def check_posts(sc, delay, threads):
     try:
-        # Get previous users and their seen film numbers
-        stats = load_stats('data.json')
-        if 'last_page' not in stats:
-            stats['last_page'] = 1
-        if 'last_post_id' not in stats:
-            stats['last_post_id'] = ''
-        response = session.get(os.path.join(FORUMURL, 'topic/{0}/1/?x=25'.format(THREADID)))
+        # Get all thread data including users and their seen films
+        if len(threads) == 0:
+            # Wait until DELAY until we check the threads for new posts
+            delay = DELAY
+            threads = load_stats('data.json')
+            # Get new threads to monitor
+            config.read('config.ini')
+            for section in config.sections():
+                if section.startswith('thread'):
+                    thread_id = config.get(section, 'threadid')
+                    forum_id = config.get(section, 'forumid')
+                    if thread_id not in threads:
+                        thread = {}
+                        thread['forum_id'] = forum_id
+                        threads[thread_id] = thread
+        else:
+            # Set delay to 60 seconds when processing threads
+            delay = 60
+        # Process current thread
+        thread_id, thread = threads.items()[0]
+        del threads[thread_id]
+        if 'last_page' not in thread:
+            thread['last_page'] = 1
+        if 'last_post_id' not in thread:
+            thread['last_post_id'] = ''
+        response = session.get(os.path.join(FORUMURL, 'topic/{0}/1/?x=25'.format(thread_id)))
         html = bs4.BeautifulSoup(response.text, 'html.parser')
-        if 'title' not in stats:
-            stats['title'] = html.title.string
-        if 'first_post_id' not in stats:
-            stats['first_post_id'] = find_posts(html)[0]['id']
-        print '=' * len(stats['title']) 
-        print stats['title']
-        print '=' * len(stats['title'])
-        num_pages = get_page_count(THREADID)
-        all_posts = fetch_new_posts(THREADID, stats['last_page'], num_pages + 1, stats['last_post_id'])
+        if 'title' not in thread:
+            thread['title'] = html.title.string
+        if 'first_post_id' not in thread:
+            thread['first_post_id'] = find_posts(html)[0]['id']
+            thread['first_post'] = thread['first_post_id'][5:] 
+        print '=' * len(thread['title']) 
+        print thread['title']
+        print '=' * len(thread['title'])
+        num_pages = get_page_count(thread_id)
+        all_posts = fetch_new_posts(thread_id, thread['last_page'], num_pages + 1, thread['last_post_id'])
         if len(all_posts) == 0:
             raise Exception('No new posts\n')
         # Now that we have all the new posts, we can find the updates
@@ -257,45 +274,42 @@ def check_posts(sc, delay):
             # assigned without a problem
             # If user has posted before, update existing data
             # Otherwise add the new user and seen films
-            if 'users' not in stats:
-                stats['users'] = []
-            idx = get_index(stats['users'], lambda x: x['username'] == post['username'])
+            if 'users' not in thread:
+                thread['users'] = []
+            idx = get_index(thread['users'], lambda x: x['username'] == post['username'])
             if idx > -1:
-                stats['users'][idx]['seen'] = seen_films
+                thread['users'][idx]['seen'] = seen_films
             else:
                 user = {}
                 user['username'] = post['username']
                 user['seen'] = seen_films
-                stats['users'].append(user)
+                thread['users'].append(user)
         if not has_new_updates:
             print 'No new updates\n'
         # Save the last post and page we processed
-        stats['last_page'] = num_pages
-        stats['last_post_id'] = all_posts[-1]['id']
-        if DEBUG == 'off':
-            # Only save data when not in debug mode
-            save_stats('data.json', stats)
+        thread['last_page'] = num_pages
+        thread['last_post_id'] = all_posts[-1]['id']
         # Next we will render the template
         if has_new_updates:
             # Only update first post if there's new updates
             tpl = jinja.get_template(u'template.html')
-            render = tpl.render(entries=stats['users'])
+            render = tpl.render(entries=thread['users'])
             if DEBUG == 'off':
-                submit_post(render, FORUMID, THREADID, stats['first_post_id'])
+                submit_post(render, thread['forum_id'], thread_id, thread['first_post'])
                 print 'Updated first post\n'
-                for user in stats['users']:
-                    print '{0}: {1}'.format(user['username'], user['seen'])
-                print '\n'
             else:
                 print render
+        if DEBUG == 'off':
+            # Only save data when not in debug mode
+            save_stats('data.json', threads)
     except Exception, e:
         print 'Error:', str(e)
-    sc.enter(delay, 1, check_posts, (sc, delay))
+    sc.enter(delay, 1, check_posts, (sc, delay, threads))
 
 if __name__ == '__main__':
     try:
         login(USERNAME, PASSWORD)
-        scheduler.enter(0, 1, check_posts, (scheduler, DELAY))
+        scheduler.enter(0, 1, check_posts, (scheduler, DELAY, []))
         scheduler.run()
     except Exception, e:
         import traceback
