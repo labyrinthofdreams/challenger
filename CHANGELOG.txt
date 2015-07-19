@@ -1,3 +1,10 @@
+2.0b1
+- Support for multiple threads
+- Move variables fomr config.ini to JSON storage
+- Add datetime to output
+- Display total number of pages when querying a page
+- When debug mode is enabled all posts in each thread will be fetched
+
 1.0.3
 - Fetch and display thread title
 
