@@ -241,7 +241,7 @@ def check_posts(sc, delay, threads, index):
             if section.startswith('thread'):
                 thread_id = config.get(section, 'threadid')
                 forum_id = config.get(section, 'forumid')
-                if thread_id not in threads:
+                if DEBUG == 'on' or thread_id not in threads:
                     thread = {}
                     thread['forum_id'] = forum_id
                     threads[thread_id] = thread
