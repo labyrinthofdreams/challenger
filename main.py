@@ -23,8 +23,6 @@ USERNAME = config.get('forum', 'username')
 PASSWORD = config.get('forum', 'password')
 FORUMID = config.getint('forum', 'forumid')
 THREADID = config.getint('forum', 'threadid')
-LASTPAGE = config.getint('script', 'lastpage')
-LASTPOST = config.get('script', 'lastpost')
 DELAY = config.getint('script', 'delay')
 DEBUG = config.get('script', 'debug')
 
@@ -224,11 +222,13 @@ def get_seen_films(html):
     
 def check_posts(sc, delay):
     global THREADID
-    global LASTPAGE
-    global LASTPOST
     try:
         # Get previous users and their seen film numbers
         stats = load_stats('data.json')
+        if 'last_page' not in stats:
+            stats['last_page'] = 1
+        if 'last_post_id' not in stats:
+            stats['last_post_id'] = ''
         response = session.get(os.path.join(FORUMURL, 'topic/{0}/1/?x=25'.format(THREADID)))
         html = bs4.BeautifulSoup(response.text, 'html.parser')
         if 'title' not in stats:
@@ -239,7 +239,7 @@ def check_posts(sc, delay):
         print stats['title']
         print '=' * len(stats['title'])
         num_pages = get_page_count(THREADID)
-        all_posts = fetch_new_posts(THREADID, LASTPAGE, num_pages + 1, LASTPOST)
+        all_posts = fetch_new_posts(THREADID, stats['last_page'], num_pages + 1, stats['last_post_id'])
         if len(all_posts) == 0:
             raise Exception('No new posts\n')
         # Now that we have all the new posts, we can find the updates
@@ -270,15 +270,10 @@ def check_posts(sc, delay):
         if not has_new_updates:
             print 'No new updates\n'
         # Save the last post and page we processed
-        LASTPAGE = num_pages
-        LASTPOST = all_posts[-1]['id']
+        stats['last_page'] = num_pages
+        stats['last_post_id'] = all_posts[-1]['id']
         if DEBUG == 'off':
             # Only save data when not in debug mode
-            config.set('script', 'lastpost', all_posts[-1]['id'])
-            config.set('script', 'lastpage', num_pages)
-            with open('config.ini', 'wb') as out:
-                config.write(out)
-            # Save the user data
             save_stats('data.json', stats)
         # Next we will render the template
         if has_new_updates:
