@@ -9,6 +9,10 @@ import bs4
 import jinja2
 import requests
 
+class ChallengerException(Exception):
+    """Custom exception class for generic exceptions"""
+    pass
+
 session = requests.Session()
 
 scheduler = sched.scheduler(time.time, time.sleep)
@@ -259,7 +263,7 @@ def check_posts(sc, delay, threads):
         num_pages = get_page_count(thread_id)
         all_posts = fetch_new_posts(thread_id, thread['last_page'], num_pages + 1, thread['last_post_id'])
         if len(all_posts) == 0:
-            raise Exception('No new posts\n')
+            raise ChallengerException('No new posts\n')
         # Now that we have all the new posts, we can find the updates
         has_new_updates = False
         for post in all_posts:
