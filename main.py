@@ -262,7 +262,8 @@ def check_posts(sc, delay, threads, index):
         if 'first_post_id' not in thread:
             thread['first_post_id'] = find_posts(html)[0]['id']
             thread['first_post'] = thread['first_post_id'][5:] 
-        title = datetime.datetime.today().strftime(u'%H:%M:%S - ') + thread['title'] 
+        title = '{0} - {1} of {2} - {3}'.format(datetime.datetime.today().strftime(u'%H:%M:%S'),
+                                                index, len(threads), thread['title']) 
         print '=' * len(title) 
         print title
         print '=' * len(title)
