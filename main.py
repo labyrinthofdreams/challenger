@@ -222,29 +222,32 @@ def get_seen_films(html):
         seen_films = get_highest_number(html)
     return seen_films
     
-def check_posts(sc, delay, threads):
+def check_posts(sc, delay, threads, index):
     try:
-        # Get all thread data including users and their seen films
-        if len(threads) == 0:
-            # Wait until DELAY until we check the threads for new posts
+        # We must wait 60 seconds between each request when processing a queue
+        # But we'll wait used-defined amount between when a queue has finished
+        # and before it starts again
+        if len(threads) == index + 1:
             delay = DELAY
-            threads = load_stats('data.json')
-            # Get new threads to monitor
-            config.read('config.ini')
-            for section in config.sections():
-                if section.startswith('thread'):
-                    thread_id = config.get(section, 'threadid')
-                    forum_id = config.get(section, 'forumid')
-                    if thread_id not in threads:
-                        thread = {}
-                        thread['forum_id'] = forum_id
-                        threads[thread_id] = thread
         else:
-            # Set delay to 60 seconds when processing threads
             delay = 60
+        if len(threads) == index:
+            index = 0
+        # Get all thread data including users and their seen films
+        threads = load_stats('data.json')
+        # Get new threads to monitor
+        config.read('config.ini')
+        for section in config.sections():
+            if section.startswith('thread'):
+                thread_id = config.get(section, 'threadid')
+                forum_id = config.get(section, 'forumid')
+                if thread_id not in threads:
+                    thread = {}
+                    thread['forum_id'] = forum_id
+                    threads[thread_id] = thread
         # Process current thread
-        thread_id, thread = threads.items()[0]
-        del threads[thread_id]
+        thread_id, thread = threads.items()[index]
+        index = index + 1
         if 'last_page' not in thread:
             thread['last_page'] = 1
         if 'last_post_id' not in thread:
@@ -307,14 +310,19 @@ def check_posts(sc, delay, threads):
         if DEBUG == 'off':
             # Only save data when not in debug mode
             save_stats('data.json', threads)
+    except ChallengerException, e:
+        print str(e)
     except Exception, e:
+        import traceback
+        print traceback.format_exc()
         print 'Error:', str(e)
-    sc.enter(delay, 1, check_posts, (sc, delay, threads))
+        
+    sc.enter(delay, 1, check_posts, (sc, delay, threads, index))
 
 if __name__ == '__main__':
     try:
         login(USERNAME, PASSWORD)
-        scheduler.enter(0, 1, check_posts, (scheduler, DELAY, []))
+        scheduler.enter(0, 1, check_posts, (scheduler, DELAY, {}, 0))
         scheduler.run()
     except Exception, e:
         import traceback
