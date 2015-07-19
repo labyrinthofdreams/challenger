@@ -23,7 +23,6 @@ USERNAME = config.get('forum', 'username')
 PASSWORD = config.get('forum', 'password')
 FORUMID = config.getint('forum', 'forumid')
 THREADID = config.getint('forum', 'threadid')
-POSTID = config.getint('forum', 'postid')
 LASTPAGE = config.getint('script', 'lastpage')
 LASTPOST = config.get('script', 'lastpost')
 DELAY = config.getint('script', 'delay')
@@ -223,12 +222,6 @@ def get_seen_films(html):
         seen_films = get_highest_number(html)
     return seen_films
     
-def fetch_thread_title(thread_id):
-    """Fetches thread title"""
-    response = session.get(os.path.join(FORUMURL, 'topic/{0}/1/?x=25'.format(thread_id)))
-    html = bs4.BeautifulSoup(response.text, 'html.parser')
-    return html.title.string
-    
 def check_posts(sc, delay):
     global THREADID
     global LASTPAGE
@@ -236,8 +229,12 @@ def check_posts(sc, delay):
     try:
         # Get previous users and their seen film numbers
         stats = load_stats('data.json')
+        response = session.get(os.path.join(FORUMURL, 'topic/{0}/1/?x=25'.format(THREADID)))
+        html = bs4.BeautifulSoup(response.text, 'html.parser')
         if 'title' not in stats:
-            stats['title'] = fetch_thread_title(THREADID)
+            stats['title'] = html.title.string
+        if 'first_post_id' not in stats:
+            stats['first_post_id'] = find_posts(html)[0]['id']
         print '=' * len(stats['title']) 
         print stats['title']
         print '=' * len(stats['title'])
@@ -289,7 +286,7 @@ def check_posts(sc, delay):
             tpl = jinja.get_template(u'template.html')
             render = tpl.render(entries=stats['users'])
             if DEBUG == 'off':
-                submit_post(render, FORUMID, THREADID, POSTID)
+                submit_post(render, FORUMID, THREADID, stats['first_post_id'])
                 print 'Updated first post\n'
                 for user in stats['users']:
                     print '{0}: {1}'.format(user['username'], user['seen'])
