@@ -320,8 +320,7 @@ def check_posts(sc, delay, threads, index):
     except Exception, e:
         import traceback
         print traceback.format_exc()
-        print 'Error:', str(e)
-        
+        print 'Error:', str(e)         
     sc.enter(delay, 1, check_posts, (sc, delay, threads, index))
 
 if __name__ == '__main__':
