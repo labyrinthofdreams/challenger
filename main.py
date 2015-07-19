@@ -252,9 +252,10 @@ def check_posts(sc, delay, threads):
         if 'first_post_id' not in thread:
             thread['first_post_id'] = find_posts(html)[0]['id']
             thread['first_post'] = thread['first_post_id'][5:] 
-        print '=' * len(thread['title']) 
-        print thread['title']
-        print '=' * len(thread['title'])
+        title = datetime.datetime.today().strftime(u'%H:%M:%S - ') + thread['title'] 
+        print '=' * len(title) 
+        print title
+        print '=' * len(title)
         num_pages = get_page_count(thread_id)
         all_posts = fetch_new_posts(thread_id, thread['last_page'], num_pages + 1, thread['last_post_id'])
         if len(all_posts) == 0:
