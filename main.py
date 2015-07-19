@@ -86,8 +86,8 @@ def login(username, password):
         
 def get_index(iterable, fun):
     for i in range(0, len(iterable)):
-            if fun(iterable[i]):
-                    return i
+        if fun(iterable[i]):
+            return i
     return -1      
     
 def submit_post(text, forum_id, thread_id, post_id):
