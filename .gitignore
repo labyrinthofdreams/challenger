@@ -1,6 +1,5 @@
 *
-!template/
-!template/*.html
+!template/index0.html
 !.gitignore
 !CHANGELOG.txt
 !config.ini.txt

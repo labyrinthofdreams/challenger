@@ -244,6 +244,7 @@ def check_posts(sc, delay, threads, index):
                 if DEBUG == 'on' or thread_id not in threads:
                     thread = {}
                     thread['forum_id'] = forum_id
+                    thread['section'] = section
                     threads[thread_id] = thread
         if len(threads) == 0:
             raise ChallengerException('Could not find any threads')
@@ -302,7 +303,7 @@ def check_posts(sc, delay, threads, index):
         # Next we will render the template
         if has_new_updates:
             # Only update first post if there's new updates
-            tpl = jinja.get_template(u'template.html')
+            tpl = jinja.get_template(u'{0}.html'.format(thread['section']))
             render = tpl.render(entries=thread['users'])
             if DEBUG == 'off':
                 submit_post(render, thread['forum_id'], thread_id, thread['first_post'])
@@ -314,6 +315,8 @@ def check_posts(sc, delay, threads, index):
             save_stats('data.json', threads)
     except ChallengerException, e:
         print str(e)
+    except jinja2.TemplateNotFound, e:
+        print 'jinja2 template not found:', str(e)
     except Exception, e:
         import traceback
         print traceback.format_exc()
