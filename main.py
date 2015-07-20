@@ -1,3 +1,9 @@
+"""
+Copyright (c) 2015 https://github.com/labyrinthofdreams
+For license information see LICENSE.txt
+
+Automatic updater for film challenges
+"""
 import ConfigParser
 import datetime
 import json
@@ -40,7 +46,8 @@ def find_posts(html):
     for row in rows:
         post = {}
         post['id'] = row.get('id')
-        post['text'] = table.find('tr', id=row.get('id')).find_next_sibling().find('td', class_='c_post')
+        post['text'] = table.find('tr', id=row.get('id')).find_next_sibling().\
+                                                find('td', class_='c_post')
         post['username'] = row.find('a', class_='member').string
         posts.append(post)
     return posts
@@ -65,13 +72,13 @@ def get_posts(thread_id, page):
     return find_posts(html)
 
 def login(username, password):
+    """Log in using username and password"""
     if username is None or password is None:
         raise Exception(u'Username and password must be set')
     args = {u'uname': username,
             u'pw': password,
             u'cookie_on': u'1',
-            u'tm': datetime.datetime.today().strftime(u'4/4/2014 3:%M:%S PM')
-            }
+            u'tm': datetime.datetime.today().strftime(u'4/4/2014 3:%M:%S PM')}
     headers = {u'content-type': u'application/x-www-form-urlencoded'}
     url = os.path.join(FORUMURL, u'login/log_in/')
     resp = session.post(url, data=args, headers=headers, allow_redirects=False)
@@ -85,13 +92,18 @@ def login(username, password):
             raise Exception(u'Login failed. Invalid username and/or password')
         
 def get_index(iterable, fun):
+    """Return index as an integer when the function fun returns True
+    
+    Returns -1 if fun is never True, otherwise the index"""
     for i in range(0, len(iterable)):
         if fun(iterable[i]):
             return i
     return -1      
     
 def submit_post(text, forum_id, thread_id, post_id):
-    url = os.path.join(FORUMURL, 'post/?mode=3&type=1&f={0}&t={1}&p={2}&pg=1'.format(forum_id, thread_id, post_id))
+    """Edit forum post"""
+    url = os.path.join(FORUMURL, 'post/?mode=3&type=1&f={0}&t={1}&p={2}&pg=1'.\
+                                    format(forum_id, thread_id, post_id))
     response = session.get(url)
     if response.text.find('<td>You do not have permission to edit this post.<br />') > -1:
         raise Exception('You do not have permission to edit this post')
@@ -112,12 +124,12 @@ def submit_post(text, forum_id, thread_id, post_id):
               'tags': html.find('input', attrs={'name':'tags'})['value'],
               'sig': html.find('input', attrs={'name':'sig'})['value'],
               'emo': html.find('input', attrs={'name':'emo'})['value'],
-              'post': text              
-              }
+              'post': text}
     headers = {u'content-type': u'application/x-www-form-urlencoded'}  
     try:
         posturl = os.path.join(FORUMURL, 'post/')
-        response = session.post(posturl, data=params, headers=headers, cookies=session.cookies)
+        response = session.post(posturl, data=params, headers=headers, 
+                                cookies=session.cookies)
         if response.status_code != requests.codes.ok:
             raise response.raise_for_status()
         elif len(response.cookies) == 0:
@@ -133,15 +145,15 @@ def get_highest_number(html):
     # Find lines starting with a number and pick the largest number
     text = unicode(html).strip().replace('<br/>', '\n')
     # Matches: 123. film title
-    rx = re.compile('^([0-9]+)\\.\\s+')
+    single_rx = re.compile('^([0-9]+)\\.\\s+')
     # Matches: 12-13. film title & 12.-13. film title
-    rx2 = re.compile('^[0-9]+\\.?\\-([0-9]+)\\.\\s+')
+    multi_rx = re.compile('^[0-9]+\\.?\\-([0-9]+)\\.\\s+')
     highest = 0
     lines = [line.strip() for line in text.split('\n')]
     for line in lines:        
-        result = rx.match(line)
+        result = single_rx.match(line)
         if not result:
-            result = rx2.match(line)
+            result = multi_rx.match(line)
         if result:
             match = int(result.group(1))
             if match > highest:
@@ -157,9 +169,9 @@ def parse_overwrite(html):
     """
     text = unicode(html).replace('<br/>', '\n')
     lines = text.split('\n')
-    rx = re.compile('!overwrite ([0-9]+)')
+    rex = re.compile('!overwrite ([0-9]+)')
     for line in lines:    
-        result = rx.search(line)
+        result = rex.search(line)
         if result:
             return int(result.group(1))
     return None
@@ -201,8 +213,8 @@ def load_stats(filename):
     with open(filename, 'rb') as json_file:
         try:
             stats = json.loads(json_file.readline())
-        except Exception, e:
-            print 'Error loading JSON:', str(e)
+        except Exception, err:
+            print 'Error loading JSON:', str(err)
     return stats
     
 def save_stats(filename, data):
@@ -210,8 +222,8 @@ def save_stats(filename, data):
     with open(filename, 'wb') as out:
         try:
             out.write(json.dumps(data))
-        except Exception, e:
-            print 'Error saving:', str(e)
+        except Exception, err:
+            print 'Error saving:', str(err)
     
 def get_seen_films(html):
     """Gets a seen films number from a post
@@ -222,7 +234,8 @@ def get_seen_films(html):
         seen_films = get_highest_number(html)
     return seen_films
     
-def check_posts(sc, delay, threads, index):
+def check_posts(sch, delay, threads, index):
+    """Check for new posts in threads"""
     try:
         # We must wait 60 seconds between each request when processing a queue
         # But we'll wait used-defined amount between when a queue has finished
@@ -255,20 +268,23 @@ def check_posts(sc, delay, threads, index):
             thread['last_page'] = 1
         if 'last_post_id' not in thread:
             thread['last_post_id'] = ''
-        response = session.get(os.path.join(FORUMURL, 'topic/{0}/1/?x=25'.format(thread_id)))
+        response = session.get(os.path.join(FORUMURL, \
+                                        'topic/{0}/1/?x=25'.format(thread_id)))
         html = bs4.BeautifulSoup(response.text, 'html.parser')
         if 'title' not in thread:
             thread['title'] = html.title.string
         if 'first_post_id' not in thread:
             thread['first_post_id'] = find_posts(html)[0]['id']
             thread['first_post'] = thread['first_post_id'][5:] 
-        title = '{0} - {1} of {2} - {3}'.format(datetime.datetime.today().strftime(u'%H:%M:%S'),
-                                                index, len(threads), thread['title']) 
+        title = '{0} - {1} of {2} - {3}'.\
+            format(datetime.datetime.today().strftime(u'%H:%M:%S'),
+                   index, len(threads), thread['title']) 
         print '=' * len(title) 
         print title
         print '=' * len(title)
         num_pages = get_page_count(thread_id)
-        all_posts = fetch_new_posts(thread_id, thread['last_page'], num_pages + 1, thread['last_post_id'])
+        all_posts = fetch_new_posts(thread_id, thread['last_page'], 
+                                    num_pages + 1, thread['last_post_id'])
         if len(all_posts) == 0:
             raise ChallengerException('No new posts\n')
         # Now that we have all the new posts, we can find the updates
@@ -288,7 +304,8 @@ def check_posts(sc, delay, threads, index):
             # Otherwise add the new user and seen films
             if 'users' not in thread:
                 thread['users'] = []
-            idx = get_index(thread['users'], lambda x: x['username'] == post['username'])
+            idx = get_index(thread['users'], 
+                            lambda x: x['username'] == post['username'])
             if idx > -1:
                 thread['users'][idx]['seen'] = seen_films
             else:
@@ -307,29 +324,31 @@ def check_posts(sc, delay, threads, index):
             tpl = jinja.get_template(u'{0}.html'.format(thread['section']))
             render = tpl.render(entries=thread['users'])
             if DEBUG == 'off':
-                submit_post(render, thread['forum_id'], thread_id, thread['first_post'])
+                submit_post(render, thread['forum_id'], 
+                            thread_id, thread['first_post'])
                 print 'Updated first post\n'
             else:
                 print render
         if DEBUG == 'off':
             # Only save data when not in debug mode
             save_stats('data.json', threads)
-    except ChallengerException, e:
-        print str(e)
-    except jinja2.TemplateNotFound, e:
-        print 'jinja2 template not found:', str(e)
-    except Exception, e:
+    except ChallengerException, err:
+        print str(err)
+    except jinja2.TemplateNotFound, err:
+        print 'jinja2 template not found:', str(err)
+    except Exception, err:
         import traceback
         print traceback.format_exc()
-        print 'Error:', str(e)         
-    sc.enter(delay, 1, check_posts, (sc, delay, threads, index))
+        print 'Error:', str(err)         
+    sch.enter(delay, 1, check_posts, (sch, delay, threads, index))
 
 if __name__ == '__main__':
     try:
         login(USERNAME, PASSWORD)
         scheduler.enter(0, 1, check_posts, (scheduler, DELAY, {}, 0))
         scheduler.run()
-    except Exception, e:
+    except Exception, err:
         import traceback
         traceback.format_exc()
-        print str(e)
+        print str(err)
+        
