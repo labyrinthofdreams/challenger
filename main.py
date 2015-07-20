@@ -38,7 +38,7 @@ def find_posts(html):
     """Finds all posts in the given bs4 html object
     
     Returns empty list if finds none, otherwise a list of all found posts"""
-    table = html.find('table', {'id':'topic_viewer'})
+    table = html.find('table', {'id': 'topic_viewer'})
     posts = []
     if not table:
         return posts
@@ -84,7 +84,7 @@ def login(username, password):
     resp = session.post(url, data=args, headers=headers, allow_redirects=False)
     if resp.status_code != requests.codes.ok:
         pass
-        #raise resp.raise_for_status()
+        # raise resp.raise_for_status()
     elif len(resp.cookies) == 0:
         if resp.text.find('You are logged in already') > -1:
             print 'You\'re already logged in!'
@@ -108,22 +108,22 @@ def submit_post(text, forum_id, thread_id, post_id):
     if response.text.find('<td>You do not have permission to edit this post.<br />') > -1:
         raise Exception('You do not have permission to edit this post')
     html = bs4.BeautifulSoup(response.text, 'html.parser')
-    params = {'mode': html.find('input', attrs={'name':'mode'})['value'],
-              'type': html.find('input', attrs={'name':'type'})['value'],
-              'ast': html.find('input', attrs={'name':'ast'})['value'],
-              'f': html.find('input', attrs={'name':'f'})['value'],
-              'xc': html.find('input', attrs={'name':'xc'})['value'],
-              't': html.find('input', attrs={'name':'t'})['value'],
-              'qhash': html.find('input', attrs={'name':'qhash'})['value'],
-              'p': html.find('input', attrs={'name':'p'})['value'],
-              'pg': html.find('input', attrs={'name':'pg'})['value'],
-              'x': html.find('input', attrs={'name':'x'})['value'],
-              'sd': html.find('input', attrs={'name':'sd'})['value'],
-              'title': html.find('input', attrs={'name':'title'})['value'],
-              'description': html.find('input', attrs={'name':'description'})['value'],
-              'tags': html.find('input', attrs={'name':'tags'})['value'],
-              'sig': html.find('input', attrs={'name':'sig'})['value'],
-              'emo': html.find('input', attrs={'name':'emo'})['value'],
+    params = {'mode': html.find('input', attrs={'name': 'mode'})['value'],
+              'type': html.find('input', attrs={'name': 'type'})['value'],
+              'ast': html.find('input', attrs={'name': 'ast'})['value'],
+              'f': html.find('input', attrs={'name': 'f'})['value'],
+              'xc': html.find('input', attrs={'name': 'xc'})['value'],
+              't': html.find('input', attrs={'name': 't'})['value'],
+              'qhash': html.find('input', attrs={'name': 'qhash'})['value'],
+              'p': html.find('input', attrs={'name': 'p'})['value'],
+              'pg': html.find('input', attrs={'name': 'pg'})['value'],
+              'x': html.find('input', attrs={'name': 'x'})['value'],
+              'sd': html.find('input', attrs={'name': 'sd'})['value'],
+              'title': html.find('input', attrs={'name': 'title'})['value'],
+              'description': html.find('input', attrs={'name': 'description'})['value'],
+              'tags': html.find('input', attrs={'name': 'tags'})['value'],
+              'sig': html.find('input', attrs={'name': 'sig'})['value'],
+              'emo': html.find('input', attrs={'name': 'emo'})['value'],
               'post': text}
     headers = {u'content-type': u'application/x-www-form-urlencoded'}  
     try:
@@ -134,7 +134,7 @@ def submit_post(text, forum_id, thread_id, post_id):
             raise response.raise_for_status()
         elif len(response.cookies) == 0:
             pass
-            #raise Exception(u'Post failed. Not logged in!')
+            # raise Exception(u'Post failed. Not logged in!')
     except:
         raise
         
