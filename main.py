@@ -245,13 +245,17 @@ def check_posts(sch, delay, threads, index):
             delay = LONGDELAY
         else:
             delay = SHORTDELAY
-        if len(threads) == index:
-            index = 0
         # Get all thread data including users and their seen films
         threads = load_stats('data.json')
         # Get new threads to monitor
-        config.read('config.ini')
         for section in config.sections():
+            # We need to remove all sections because when we read() the config.ini file again
+            # the old sections will remain, that is, the read() only adds new sections
+            # so IF we remove a section it wouldn't be removed until the program is restarted
+            config.remove_section(section)
+        config.read('config.ini')
+        sections = config.sections()
+        for section in sections:
             if section.startswith('thread'):
                 thread_id = config.get(section, 'threadid')
                 forum_id = config.get(section, 'forumid')
@@ -260,7 +264,17 @@ def check_posts(sch, delay, threads, index):
                     thread['forum_id'] = forum_id
                     thread['section'] = section
                     threads[thread_id] = thread
+        # Delete thread if it's removed from config file
+        for key, value in threads.items():
+            if value['section'] not in sections:
+                del threads[key]
+        print threads.keys()
+        if index >= len(threads):
+            index = 0
         if len(threads) == 0:
+            if DEBUG == 'off':
+                # Only save data when not in debug mode
+                save_stats('data.json', threads)
             raise ChallengerException('Could not find any threads')
         # Process current thread
         thread_id, thread = threads.items()[index]
@@ -287,6 +301,9 @@ def check_posts(sch, delay, threads, index):
         all_posts = fetch_new_posts(thread_id, thread['last_page'], 
                                     num_pages + 1, thread['last_post_id'])
         if len(all_posts) == 0:
+            if DEBUG == 'off':
+                # Only save data when not in debug mode
+                save_stats('data.json', threads)
             raise ChallengerException('No new posts\n')
         # Now that we have all the new posts, we can find the updates
         has_new_updates = False

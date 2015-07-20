@@ -6,6 +6,7 @@
 - When debug mode is enabled all posts in each thread will be fetched
 - Display how many threads there's still left to query
 - Make long and short delay configurable
+- Add support for removing threads on-the-fly
 
 1.0.3
 - Fetch and display thread title
