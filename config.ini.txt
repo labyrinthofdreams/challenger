@@ -11,7 +11,9 @@ password = example
 ; disable debugging: off
 debug = off
 ; seconds to wait before processing the thread queue 
-delay = 900
+longdelay = 900
+; seconds to wait between each request while processing the thread queue
+shortdelay = 60
 
 ; to add a new thread create another section where the section name
 ; follows the pattern threadN where N is a number

@@ -31,7 +31,8 @@ config.read('config.ini')
 FORUMURL = config.get('forum', 'url')
 USERNAME = config.get('forum', 'username')
 PASSWORD = config.get('forum', 'password')
-DELAY = config.getint('script', 'delay')
+LONGDELAY = config.getint('script', 'longdelay')
+SHORTDELAY = config.getint('script', 'shortdelay')
 DEBUG = config.get('script', 'debug')
 
 def find_posts(html):
@@ -237,13 +238,13 @@ def get_seen_films(html):
 def check_posts(sch, delay, threads, index):
     """Check for new posts in threads"""
     try:
-        # We must wait 60 seconds between each request when processing a queue
-        # But we'll wait used-defined amount between when a queue has finished
+        # We must wait SHORTDELAY seconds between each request when processing a queue
+        # But we'll wait LONGDELAY between when a queue has finished
         # and before it starts again
         if len(threads) == index + 1:
-            delay = DELAY
+            delay = LONGDELAY
         else:
-            delay = 60
+            delay = SHORTDELAY
         if len(threads) == index:
             index = 0
         # Get all thread data including users and their seen films
@@ -345,7 +346,7 @@ def check_posts(sch, delay, threads, index):
 if __name__ == '__main__':
     try:
         login(USERNAME, PASSWORD)
-        scheduler.enter(0, 1, check_posts, (scheduler, DELAY, {}, 0))
+        scheduler.enter(0, 1, check_posts, (scheduler, LONGDELAY, {}, 0))
         scheduler.run()
     except Exception, err:
         import traceback

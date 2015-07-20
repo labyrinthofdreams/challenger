@@ -5,6 +5,7 @@
 - Display total number of pages when querying a page
 - When debug mode is enabled all posts in each thread will be fetched
 - Display how many threads there's still left to query
+- Make long and short delay configurable
 
 1.0.3
 - Fetch and display thread title
