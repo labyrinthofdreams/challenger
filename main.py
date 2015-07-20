@@ -248,6 +248,7 @@ def check_posts(sch, delay, threads, index):
         # Get all thread data including users and their seen films
         threads = load_stats('data.json')
         # Get new threads to monitor
+        num_sections = len(config.sections())
         for section in config.sections():
             # We need to remove all sections because when we read() the config.ini file again
             # the old sections will remain, that is, the read() only adds new sections
@@ -269,7 +270,8 @@ def check_posts(sch, delay, threads, index):
             if value['section'] not in sections:
                 del threads[key]
         print threads.keys()
-        if index >= len(threads):
+        if num_sections != len(sections) or index >= len(threads):
+            # Set index to zero when the number of sections has changed
             index = 0
         if len(threads) == 0:
             if DEBUG == 'off':
