@@ -269,7 +269,6 @@ def check_posts(sch, delay, threads, index):
         for key, value in threads.items():
             if value['section'] not in sections:
                 del threads[key]
-        print threads.keys()
         if num_sections != len(sections) or index >= len(threads):
             # Set index to zero when the number of sections has changed
             index = 0
