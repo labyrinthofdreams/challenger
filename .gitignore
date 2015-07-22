@@ -1,5 +1,7 @@
 *
-!template/index0.html
+!template/
+!template/thread0.html
+!template/thread0-winners.html
 !.gitignore
 !CHANGELOG.txt
 !config.ini.txt
