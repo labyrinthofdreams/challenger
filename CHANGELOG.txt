@@ -1,5 +1,6 @@
 2.0b2
 - Add support for setting an end time for each thread
+- Add support for changing end time on-the-fly
 
 2.0b1
 - Support for multiple threads

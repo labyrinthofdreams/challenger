@@ -294,6 +294,12 @@ def check_posts(sch, delay, threads, index):
                     thread['section'] = section
                     thread['end_time'] = config.get(section, 'endtime')
                     threads[thread_id] = thread
+                elif thread_id in threads:
+                    # Update end time in case it was changed
+                    end_time = config.get(section, 'endtime')
+                    if end_time != threads[thread_id]['end_time']:
+                        threads[thread_id]['end_time'] = end_time
+                        print 'Updated end time' 
         # Delete thread if it's removed from config file
         for key, value in threads.items():
             if value['section'] not in sections:
