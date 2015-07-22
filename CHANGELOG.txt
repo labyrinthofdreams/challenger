@@ -1,3 +1,6 @@
+2.0b2
+- Add support for setting an end time for each thread
+
 2.0b1
 - Support for multiple threads
 - Move variables fomr config.ini to JSON storage

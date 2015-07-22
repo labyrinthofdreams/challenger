@@ -101,7 +101,7 @@ def get_index(iterable, fun):
             return i
     return -1      
     
-def submit_post(text, forum_id, thread_id, post_id):
+def edit_post(text, forum_id, thread_id, post_id):
     """Edit forum post"""
     url = os.path.join(FORUMURL, 'post/?mode=3&type=1&f={0}&t={1}&p={2}&pg=1'.\
                                     format(forum_id, thread_id, post_id))
@@ -131,6 +131,35 @@ def submit_post(text, forum_id, thread_id, post_id):
         posturl = os.path.join(FORUMURL, 'post/')
         response = session.post(posturl, data=params, headers=headers, 
                                 cookies=session.cookies)
+        if response.status_code != requests.codes.ok:
+            raise response.raise_for_status()
+        elif len(response.cookies) == 0:
+            pass
+            # raise Exception(u'Post failed. Not logged in!')
+    except:
+        raise
+        
+def submit_post(message, thread_id):
+    """Submit new post to a thread (quick reply)"""
+    url = os.path.join(FORUMURL, 'topic/{0}/1/'.format(thread_id))
+    response = session.get(url)
+    html = bs4.BeautifulSoup(response.text, 'html.parser')
+    form = html.find('form', attrs={'action': 'http://s15.zetaboards.com/fishtank/post/'})
+    params = {'mode': form.find('input', attrs={'name': 'mode'})['value'],
+              'type': form.find('input', attrs={'name': 'type'})['value'],
+              'f': form.find('input', attrs={'name': 'f'})['value'],
+              't': form.find('input', attrs={'name': 't'})['value'],
+              'sig': form.find('input', attrs={'name': 'sig'})['value'],
+              'emo': form.find('input', attrs={'name': 'emo'})['value'],
+              'merge_posts': form.find('input', attrs={'name': 'merge_posts'})['value'],
+              'ast': form.find('input', attrs={'name': 'ast'})['value'],
+              'xc': form.find('input', attrs={'name': 'xc'})['value'],            
+              'sd': '1',
+              'post': message}
+    headers = {u'content-type': u'application/x-www-form-urlencoded'}
+    try:
+        posturl = os.path.join(FORUMURL, 'post/')
+        response = session.post(posturl, data=params, headers=headers, cookies=session.cookies)
         if response.status_code != requests.codes.ok:
             raise response.raise_for_status()
         elif len(response.cookies) == 0:
@@ -259,11 +288,11 @@ def check_posts(sch, delay, threads, index):
         for section in sections:
             if section.startswith('thread'):
                 thread_id = config.get(section, 'threadid')
-                forum_id = config.get(section, 'forumid')
                 if DEBUG == 'on' or thread_id not in threads:
                     thread = {}
-                    thread['forum_id'] = forum_id
+                    thread['forum_id'] = config.get(section, 'forumid')
                     thread['section'] = section
+                    thread['end_time'] = config.get(section, 'endtime')
                     threads[thread_id] = thread
         # Delete thread if it's removed from config file
         for key, value in threads.items():
@@ -305,7 +334,7 @@ def check_posts(sch, delay, threads, index):
             if DEBUG == 'off':
                 # Only save data when not in debug mode
                 save_stats('data.json', threads)
-            raise ChallengerException('No new posts\n')
+            print 'No new posts'
         # Now that we have all the new posts, we can find the updates
         has_new_updates = False
         for post in all_posts:
@@ -333,24 +362,43 @@ def check_posts(sch, delay, threads, index):
                 user['seen'] = seen_films
                 thread['users'].append(user)
         if not has_new_updates:
-            print 'No new updates\n'
+            print 'No new updates'
         # Save the last post and page we processed
-        thread['last_page'] = num_pages
-        thread['last_post_id'] = all_posts[-1]['id']
+        if len(all_posts) > 0:
+            thread['last_page'] = num_pages
+            thread['last_post_id'] = all_posts[-1]['id']
         # Next we will render the template
         if has_new_updates:
             # Only update first post if there's new updates
             tpl = jinja.get_template(u'{0}.html'.format(thread['section']))
             render = tpl.render(entries=thread['users'])
             if DEBUG == 'off':
-                submit_post(render, thread['forum_id'], 
+                edit_post(render, thread['forum_id'], 
                             thread_id, thread['first_post'])
-                print 'Updated first post\n'
+                print 'Updated first post'
+            else:
+                print render
+        # Finish the thread if the end time has been reached
+        if datetime.datetime.now() >= datetime.datetime.strptime(thread['end_time'], 
+                                                                 '%Y/%m/%d %H:%M:%S'):
+            # Post the results with the winner
+            tpl = jinja.get_template(u'{0}-winners.html'.format(thread['section']))
+            render = tpl.render(entries=thread['users'])
+            if DEBUG == 'off':
+                # Submit new post
+                submit_post(render, thread_id)
+                # Remove thread from queue and config
+                del threads[thread_id]
+                config.remove_section(thread['section'])
+                with open('config.ini', 'wb') as config_file:
+                    config.write(config_file)
+                print 'Challenge is finished'
             else:
                 print render
         if DEBUG == 'off':
             # Only save data when not in debug mode
             save_stats('data.json', threads)
+        print '\n'
     except ChallengerException, err:
         print str(err)
     except jinja2.TemplateNotFound, err:

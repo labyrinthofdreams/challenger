@@ -7,7 +7,8 @@ Challenger is a script for zetaboards. It was designed to host film challenges.
 - If you want to monitor more than one thread create another section
 in config.ini called [thread1], [thread2], etc. with forumid and threadid 
 variables under each section.
-- Create a template for each section in template/ directory
+- Create a template for each section in template/ directory (e.g. thread0.html)
+- Create a template for announcing winners for each section in template/ directory (e.g. thread0-winners.html)
 - Run main.py
 - To add or remove threads simply add or remove them in config.ini (works on-the-fly)
 

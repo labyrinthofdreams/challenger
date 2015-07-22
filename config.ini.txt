@@ -22,3 +22,8 @@ shortdelay = 60
 threadid = 
 ; forum id
 forumid = 
+; end time must be in the format YEAR/MONTH/DAY HOURS:MINUTES:SECONDS
+; if a value is less than 10 you must add a zero before it, e.g. 08
+; hours are 24 where 00 = midnight, 12 = day, 23 = one hour before midnight, etc.
+; end time must not be empty
+endtime = 2020/01/01 00:00:00
