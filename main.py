@@ -99,7 +99,11 @@ def get_index(iterable, fun):
     for i in range(0, len(iterable)):
         if fun(iterable[i]):
             return i
-    return -1      
+    return -1    
+    
+def attr(html, name):
+    """Get input value with a matching name attribute"""
+    return html.find('input', attrs={'name': name})['value']  
     
 def edit_post(text, forum_id, thread_id, post_id):
     """Edit forum post"""
@@ -109,22 +113,22 @@ def edit_post(text, forum_id, thread_id, post_id):
     if response.text.find('<td>You do not have permission to edit this post.<br />') > -1:
         raise Exception('You do not have permission to edit this post')
     html = bs4.BeautifulSoup(response.text, 'html.parser')
-    params = {'mode': html.find('input', attrs={'name': 'mode'})['value'],
-              'type': html.find('input', attrs={'name': 'type'})['value'],
-              'ast': html.find('input', attrs={'name': 'ast'})['value'],
-              'f': html.find('input', attrs={'name': 'f'})['value'],
-              'xc': html.find('input', attrs={'name': 'xc'})['value'],
-              't': html.find('input', attrs={'name': 't'})['value'],
-              'qhash': html.find('input', attrs={'name': 'qhash'})['value'],
-              'p': html.find('input', attrs={'name': 'p'})['value'],
-              'pg': html.find('input', attrs={'name': 'pg'})['value'],
-              'x': html.find('input', attrs={'name': 'x'})['value'],
-              'sd': html.find('input', attrs={'name': 'sd'})['value'],
-              'title': html.find('input', attrs={'name': 'title'})['value'],
-              'description': html.find('input', attrs={'name': 'description'})['value'],
-              'tags': html.find('input', attrs={'name': 'tags'})['value'],
-              'sig': html.find('input', attrs={'name': 'sig'})['value'],
-              'emo': html.find('input', attrs={'name': 'emo'})['value'],
+    params = {'mode': attr(html, 'mode'),
+              'type': attr(html, 'type'),
+              'ast': attr(html, 'ast'),
+              'f': attr(html, 'f'),
+              'xc': attr(html, 'xc'),
+              't': attr(html, 't'),
+              'qhash': attr(html, 'qhash'),
+              'p': attr(html, 'p'),
+              'pg': attr(html, 'pg'),
+              'x': attr(html, 'x'),
+              'sd': attr(html, 'sd'),
+              'title': attr(html, 'title'),
+              'description': attr(html, 'description'),
+              'tags': attr(html, 'tags'),
+              'sig': attr(html, 'sig'),
+              'emo': attr(html, 'emo'),
               'post': text}
     headers = {u'content-type': u'application/x-www-form-urlencoded'}  
     try:
@@ -145,15 +149,15 @@ def submit_post(message, thread_id):
     response = session.get(url)
     html = bs4.BeautifulSoup(response.text, 'html.parser')
     form = html.find('form', attrs={'action': os.path.join(FORUMURL, 'post/')})
-    params = {'mode': form.find('input', attrs={'name': 'mode'})['value'],
-              'type': form.find('input', attrs={'name': 'type'})['value'],
-              'f': form.find('input', attrs={'name': 'f'})['value'],
-              't': form.find('input', attrs={'name': 't'})['value'],
-              'sig': form.find('input', attrs={'name': 'sig'})['value'],
-              'emo': form.find('input', attrs={'name': 'emo'})['value'],
-              'merge_posts': form.find('input', attrs={'name': 'merge_posts'})['value'],
-              'ast': form.find('input', attrs={'name': 'ast'})['value'],
-              'xc': form.find('input', attrs={'name': 'xc'})['value'],            
+    params = {'mode': attr(form, 'mode'),
+              'type': attr(form, 'type'),
+              'f': attr(form, 'f'),
+              't': attr(form, 't'),
+              'sig': attr(form, 'sig'),
+              'emo': attr(form, 'emo'),
+              'merge_posts': attr(form, 'merge_posts'),
+              'ast': attr(form, 'ast'),
+              'xc': attr(form, 'xc'),            
               'sd': '1',
               'post': message}
     headers = {u'content-type': u'application/x-www-form-urlencoded'}
