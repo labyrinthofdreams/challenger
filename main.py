@@ -144,7 +144,7 @@ def submit_post(message, thread_id):
     url = os.path.join(FORUMURL, 'topic/{0}/1/'.format(thread_id))
     response = session.get(url)
     html = bs4.BeautifulSoup(response.text, 'html.parser')
-    form = html.find('form', attrs={'action': 'http://s15.zetaboards.com/fishtank/post/'})
+    form = html.find('form', attrs={'action': os.path.join(FORUMURL, 'post/')})
     params = {'mode': form.find('input', attrs={'name': 'mode'})['value'],
               'type': form.find('input', attrs={'name': 'type'})['value'],
               'f': form.find('input', attrs={'name': 'f'})['value'],
