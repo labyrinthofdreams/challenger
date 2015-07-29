@@ -176,8 +176,10 @@ def get_highest_number(html):
     """Given a bs4 object will get the largest number followed by a period"""
     if not html:
         raise Exception('text parameter must not be None')    
-    # Find lines starting with a number and pick the largest number
-    text = unicode(html).strip().replace('<br/>', '\n')
+    # Replace newline tags with newlines
+    text = unicode(html).replace('<br/>', '\n').replace('<br />', '\n').replace('<br>', '\n')
+    # And extract the text without tags (this way users can use [b] and other styling on them)
+    text = bs4.BeautifulSoup(text).text
     # Matches: 123. film title
     single_rx = re.compile('^([0-9]+)\\.\\s+')
     # Matches: 12-13. film title & 12.-13. film title

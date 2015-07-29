@@ -1,3 +1,6 @@
+2.0b3
+- Allow users to use bbcodes with numbers
+
 2.0b2.1
 - Remove hardcoded forum url
 
