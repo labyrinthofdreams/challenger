@@ -266,7 +266,7 @@ def get_seen_films(html):
     
     Returns the seen films number as an integer or 0 if there's no films"""
     seen_films = parse_overwrite(html)
-    if not seen_films:
+    if seen_films is None:
         seen_films = get_highest_number(html)
     return seen_films
     
