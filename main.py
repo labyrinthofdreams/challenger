@@ -197,7 +197,7 @@ def get_highest_number(html):
     return highest          
     
 def parse_overwrite(html):
-    """Parses the value following the !overwrite command.
+    """Parses the value following the !seen command.
         
     The command must be at the start of a line.    
     
@@ -205,7 +205,7 @@ def parse_overwrite(html):
     """
     text = unicode(html).replace('<br/>', '\n')
     lines = text.split('\n')
-    rex = re.compile('!overwrite ([0-9]+)')
+    rex = re.compile('!seen ([0-9]+)')
     for line in lines:    
         result = rex.search(line)
         if result:

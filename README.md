@@ -29,6 +29,6 @@ number to the username. When all (new) posts have been scanned the program
 will render a template file and updates the first post with the results.
 
 If a user makes a mistake they may post a new comment that includes 
-!overwrite N, where N is the number of seen films. It is also possible
+!seen N, where N is the number of seen films. It is also possible
 to include the command when there's a need to overwrite 
-e.g. a large numbered list that would mess up the statistics.
+e.g. a numbered list that would mess up the statistics.
