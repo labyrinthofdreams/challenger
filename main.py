@@ -375,6 +375,9 @@ def check_posts(sch, delay, threads, index):
                 thread['users'].append(user)
         if not has_new_updates:
             print 'No new updates'
+        else:
+            # Sort list so that most number of seen films comes first
+            thread['users'] = sorted(thread['users'], key=lambda k: k['seen'], reverse=True)
         # Save the last post and page we processed
         if len(all_posts) > 0:
             thread['last_page'] = num_pages
