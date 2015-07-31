@@ -299,13 +299,16 @@ def check_posts(sch, delay, threads, index):
                     thread['forum_id'] = config.get(section, 'forumid')
                     thread['section'] = section
                     thread['end_time'] = config.get(section, 'endtime')
+                    thread['ignore'] = config.get(section, 'ignore').split(',')
                     threads[thread_id] = thread
                 elif thread_id in threads:
                     # Update end time in case it was changed
                     end_time = config.get(section, 'endtime')
                     if end_time != threads[thread_id]['end_time']:
                         threads[thread_id]['end_time'] = end_time
-                        print 'Updated end time' 
+                        print 'Updated end time'
+                    # Update posts to ignore
+                    threads[thread_id]['ignore'] = config.get(section, 'ignore').split(',')
         # Delete thread if it's removed from config file
         for key, value in threads.items():
             if value['section'] not in sections:
@@ -352,6 +355,9 @@ def check_posts(sch, delay, threads, index):
         for post in all_posts:
             # Ignore first post
             if post['id'] == thread['first_post_id']:
+                continue
+            # Ignore posts in ignore list
+            if post['id'][5:] in thread['ignore']:
                 continue
             # Check for the overwrite command
             # It overwrites all other values in the post

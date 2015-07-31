@@ -2,6 +2,8 @@
 - Allow users to use bbcodes with numbers
 - Rename !overwrite to !seen
 - Sort results so that most seen films comes first
+- Ignore first post
+- Add feature to ignore posts by post id
 
 2.0b2.1
 - Remove hardcoded forum url

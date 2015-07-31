@@ -27,3 +27,5 @@ forumid =
 ; hours are 24 where 00 = midnight, 12 = day, 23 = one hour before midnight, etc.
 ; end time must not be empty
 endtime = 2020/01/01 00:00:00
+; list of post ids to ignore separated by commas
+ignore =
