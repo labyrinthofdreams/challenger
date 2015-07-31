@@ -350,6 +350,9 @@ def check_posts(sch, delay, threads, index):
         # Now that we have all the new posts, we can find the updates
         has_new_updates = False
         for post in all_posts:
+            # Ignore first post
+            if post['id'] == thread['first_post_id']:
+                continue
             # Check for the overwrite command
             # It overwrites all other values in the post
             seen_films = get_seen_films(post['text'])
