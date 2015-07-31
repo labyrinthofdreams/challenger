@@ -1,5 +1,7 @@
 2.0b3
 - Allow users to use bbcodes with numbers
+- Rename !overwrite to !seen
+- Sort results so that most seen films comes first
 
 2.0b2.1
 - Remove hardcoded forum url
