@@ -4,9 +4,11 @@ For license information see LICENSE.txt
 
 Automatic updater for film challenges
 """
+import argparse
 import ConfigParser
 import datetime
 import json
+import os
 import os.path
 import re
 import sched
@@ -18,6 +20,9 @@ import requests
 class ChallengerException(Exception):
     """Custom exception class for generic exceptions"""
     pass
+    
+parser = argparse.ArgumentParser(description='Challenge auto-updater')
+parser.add_argument('-r', '--reset', action='store_true', help='Reset settings')
 
 session = requests.Session()
 
@@ -435,6 +440,9 @@ def check_posts(sch, delay, threads, index):
 
 if __name__ == '__main__':
     try:
+        args = parser.parse_args()
+        if args.reset and os.path.exists('data.json'):
+            os.remove('data.json')
         login(USERNAME, PASSWORD)
         scheduler.enter(0, 1, check_posts, (scheduler, LONGDELAY, {}, 0))
         scheduler.run()

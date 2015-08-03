@@ -1,3 +1,6 @@
+2.0b4
+- Add --reset command line argument to delete data.json
+
 2.0b3
 - Allow users to use bbcodes with numbers
 - Rename !overwrite to !seen
