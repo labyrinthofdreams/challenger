@@ -21,6 +21,10 @@ class ChallengerException(Exception):
     """Custom exception class for generic exceptions"""
     pass
     
+class FloodException(Exception):
+    """Raised when forum prevents us from posting due to too frequent posting"""
+    pass
+    
 parser = argparse.ArgumentParser(description='Challenge auto-updater')
 parser.add_argument('-r', '--reset', action='store_true', help='Reset settings')
 
@@ -108,7 +112,11 @@ def get_index(iterable, fun):
     
 def attr(html, name):
     """Get input value with a matching name attribute"""
-    return html.find('input', attrs={'name': name})['value']  
+    return html.find('input', attrs={'name': name})['value'] 
+    
+def reached_time_limit(text):
+    """Returns Rrue if posting time limit has been reached, otherwise False"""
+    return text.find('The frequency of posting is limited to prevent abuse') > -1
     
 def edit_post(text, forum_id, thread_id, post_id):
     """Edit forum post"""
@@ -140,7 +148,9 @@ def edit_post(text, forum_id, thread_id, post_id):
         posturl = os.path.join(FORUMURL, 'post/')
         response = session.post(posturl, data=params, headers=headers, 
                                 cookies=session.cookies)
-        if response.status_code != requests.codes.ok:
+        if reached_time_limit(response.text):
+            raise FloodException('Reached time limit between posts')
+        elif response.status_code != requests.codes.ok:
             raise response.raise_for_status()
         elif len(response.cookies) == 0:
             pass
@@ -169,7 +179,9 @@ def submit_post(message, thread_id):
     try:
         posturl = os.path.join(FORUMURL, 'post/')
         response = session.post(posturl, data=params, headers=headers, cookies=session.cookies)
-        if response.status_code != requests.codes.ok:
+        if reached_time_limit(response.text):
+            raise FloodException('Reached time limit between posts')
+        elif response.status_code != requests.codes.ok:
             raise response.raise_for_status()
         elif len(response.cookies) == 0:
             pass
@@ -419,8 +431,7 @@ def check_posts(sch, delay, threads, index):
             tpl = jinja.get_template(u'{0}.html'.format(thread['section']))
             render = tpl.render(thread=thread, forum_url=FORUMURL)
             if DEBUG == 'off':
-                edit_post(render, thread['forum_id'], 
-                            thread_id, thread['first_post'])
+                edit_post(render, thread['forum_id'], thread_id, thread['first_post'])
                 print 'Updated first post'
             else:
                 print render
@@ -447,6 +458,11 @@ def check_posts(sch, delay, threads, index):
         print '\n'
     except ChallengerException, err:
         print str(err)
+    except FloodException, err:
+        print str(err)
+        print '\n'
+        # Decrement index so that the same thread will be scanned again
+        index = index - 1
     except jinja2.TemplateNotFound, err:
         print 'jinja2 template not found:', str(err)
     except Exception, err:
