@@ -331,7 +331,7 @@ def check_posts(sch, delay, threads, index):
                         threads[thread_id]['end_time'] = end_time
                         print '*** Updated end time ***'
                     # Update posts to ignore
-                    ignore_list = config.get(section, 'ignore').split(',')
+                    ignore_list = [x.strip() for x in config.get(section, 'ignore').split(',')]
                     if threads[thread_id]['ignore'] != ignore_list:
                          threads[thread_id]['ignore'] = ignore_list
                          print '*** Added new posts to ignore ***\n'

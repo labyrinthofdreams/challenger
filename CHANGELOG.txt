@@ -1,3 +1,6 @@
+2.0b4.1
+- Strip whitespace from ignore list post ids
+
 2.0b4
 - Add --reset command line argument to delete data.json
 - Set delay to one second if there's no new updates and it's not the last thread
