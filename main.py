@@ -329,9 +329,12 @@ def check_posts(sch, delay, threads, index):
                     end_time = config.get(section, 'endtime')
                     if end_time != threads[thread_id]['end_time']:
                         threads[thread_id]['end_time'] = end_time
-                        print 'Updated end time'
+                        print '*** Updated end time ***'
                     # Update posts to ignore
-                    threads[thread_id]['ignore'] = config.get(section, 'ignore').split(',')
+                    ignore_list = config.get(section, 'ignore').split(',')
+                    if threads[thread_id]['ignore'] != ignore_list:
+                         threads[thread_id]['ignore'] = ignore_list
+                         print '*** Added new posts to ignore ***\n'
         # Delete thread if it's removed from config file
         for key, value in threads.items():
             if value['section'] not in sections:
