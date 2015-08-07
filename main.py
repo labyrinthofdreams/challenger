@@ -189,7 +189,7 @@ def get_highest_number(html):
     single_rx = re.compile('^([0-9]+)\\.\\s+')
     # Matches: 12-13. film title & 12.-13. film title
     multi_rx = re.compile('^[0-9]+\\.?\\-([0-9]+)\\.\\s+')
-    highest = 0
+    highest = None
     lines = [line.strip() for line in text.split('\n')]
     for line in lines:        
         result = single_rx.match(line)
@@ -371,9 +371,15 @@ def check_posts(sch, delay, threads, index):
             # Check for the overwrite command
             # It overwrites all other values in the post
             seen_films = get_seen_films(post['text'])
-            if seen_films == 0:
-                # Could not find a seen films number so go to next post
-                continue       
+            if seen_films is None:
+                # Ignore posts without seen films number
+                continue
+            elif seen_films == 0:
+                # If we find the seen number value 0 from a post
+                # then remove that user from the results
+                idx = get_index(thread['users'], lambda x: x['username'] == post['username'])
+                thread['users'].pop(idx)
+                continue
             has_new_updates = True    
             # Get seen films for the user. Since this will go through
             # all new posts, the latest update by the user will be 
@@ -382,8 +388,7 @@ def check_posts(sch, delay, threads, index):
             # Otherwise add the new user and seen films
             if 'users' not in thread:
                 thread['users'] = []
-            idx = get_index(thread['users'], 
-                            lambda x: x['username'] == post['username'])
+            idx = get_index(thread['users'], lambda x: x['username'] == post['username'])
             if idx > -1:
                 thread['users'][idx]['seen'] = seen_films
             else:
