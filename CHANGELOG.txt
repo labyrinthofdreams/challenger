@@ -1,5 +1,10 @@
 2.0b4
 - Add --reset command line argument to delete data.json
+- Set delay to one second if there's no new updates and it's not the last thread
+- Handle multiple !seen commands in the same post
+- Change how number of seen films are interpreted
+- Templates now have access to more data
+- Add detection for flood protection
 
 2.0b3
 - Allow users to use bbcodes with numbers
