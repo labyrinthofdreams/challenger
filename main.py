@@ -389,6 +389,11 @@ def check_posts(sch, delay, threads, index):
                 thread['users'].append(user)
         if not has_new_updates:
             print 'No new updates'
+            if index < len(threads):
+                # If we do not have new updates and if we have not processed all threads 
+                # then go straight to the next thread, but if we have reached the last thread
+                # then we must wait for LONGDELAY.
+                delay = 1
         else:
             # Sort list so that most number of seen films comes first
             thread['users'] = sorted(thread['users'], key=lambda k: k['seen'], reverse=True)
