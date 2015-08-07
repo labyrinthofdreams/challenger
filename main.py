@@ -305,6 +305,7 @@ def check_posts(sch, delay, threads, index):
                 thread_id = config.get(section, 'threadid')
                 if DEBUG == 'on' or thread_id not in threads:
                     thread = {}
+                    thread['id'] = thread_id
                     thread['forum_id'] = config.get(section, 'forumid')
                     thread['section'] = section
                     thread['end_time'] = config.get(section, 'endtime')
@@ -391,10 +392,12 @@ def check_posts(sch, delay, threads, index):
             idx = get_index(thread['users'], lambda x: x['username'] == post['username'])
             if idx > -1:
                 thread['users'][idx]['seen'] = seen_films
+                thread['users'][idx]['last_post'] = post['id'][5:]
             else:
                 user = {}
                 user['username'] = post['username']
                 user['seen'] = seen_films
+                user['last_post'] = post['id'][5:]
                 thread['users'].append(user)
         if not has_new_updates:
             print 'No new updates'
@@ -414,7 +417,7 @@ def check_posts(sch, delay, threads, index):
         if has_new_updates:
             # Only update first post if there's new updates
             tpl = jinja.get_template(u'{0}.html'.format(thread['section']))
-            render = tpl.render(entries=thread['users'])
+            render = tpl.render(thread=thread, forum_url=FORUMURL)
             if DEBUG == 'off':
                 edit_post(render, thread['forum_id'], 
                             thread_id, thread['first_post'])
@@ -426,7 +429,7 @@ def check_posts(sch, delay, threads, index):
                                                                  '%Y/%m/%d %H:%M:%S'):
             # Post the results with the winner
             tpl = jinja.get_template(u'{0}-winners.html'.format(thread['section']))
-            render = tpl.render(entries=thread['users'])
+            render = tpl.render(thread=thread, forum_url=FORUMURL)
             if DEBUG == 'off':
                 # Submit new post
                 submit_post(render, thread_id)
