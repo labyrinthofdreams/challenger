@@ -58,7 +58,8 @@ def find_posts(html):
         post['id'] = row.get('id')
         post['text'] = table.find('tr', id=row.get('id')).find_next_sibling().\
                                                 find('td', class_='c_post')
-        post['username'] = row.find('a', class_='member').string
+        post['user'] = {'username': row.find('a', class_='member').string,
+                        'profile': row.find('a', class_='member').get('href')}
         posts.append(post)
     return posts
 
@@ -390,7 +391,8 @@ def check_posts(sch, delay, threads, index):
             elif seen_films == 0:
                 # If we find the seen number value 0 from a post
                 # then remove that user from the results
-                idx = get_index(thread['users'], lambda x: x['username'] == post['username'])
+                idx = get_index(thread['users'], 
+                                lambda x: x['username'] == post['user']['username'])
                 thread['users'].pop(idx)
                 continue
             has_new_updates = True    
@@ -401,13 +403,14 @@ def check_posts(sch, delay, threads, index):
             # Otherwise add the new user and seen films
             if 'users' not in thread:
                 thread['users'] = []
-            idx = get_index(thread['users'], lambda x: x['username'] == post['username'])
+            idx = get_index(thread['users'], lambda x: x['username'] == post['user']['username'])
             if idx > -1:
                 thread['users'][idx]['seen'] = seen_films
                 thread['users'][idx]['last_post'] = post['id'][5:]
             else:
                 user = {}
-                user['username'] = post['username']
+                user['username'] = post['user']['username']
+                user['profile'] = post['user']['profile'] 
                 user['seen'] = seen_films
                 user['last_post'] = post['id'][5:]
                 thread['users'].append(user)

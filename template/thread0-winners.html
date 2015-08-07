@@ -1,4 +1,4 @@
 [b]WINNERS:[/b]
 {% for entry in thread.users %}
-[url={{ forum_url }}/single/?p={{ entry.last_post }}&t={{ thread.id }}]{{ entry.username }}[/url]: {{ entry.seen -}} 
+[url={{ entry.profile }}]{{ entry.username }}[/url]: [url={{ forum_url }}/single/?p={{ entry.last_post }}&t={{ thread.id }}]{{ entry.seen -}}[/url] 
 {% endfor %}
