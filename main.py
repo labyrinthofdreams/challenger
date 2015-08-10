@@ -217,21 +217,13 @@ def get_highest_number(html):
 def parse_overwrite(html):
     """Parses the value following the !seen command.
         
-    Returns the value as an integer or None if it can't find it.
-    
-    If there's multiple !seen commands in a post and if one of them is 0 then 0 is returned.
-    Otherwise the highest found value is returned.    
+    Returns the last found value as an integer, or None if not found   
     """
-    text = unicode(html).replace('<br/>', '\n')
-    lines = text.split('\n')
+    text = unicode(html)
     rex = re.compile('!seen ([0-9]+)')
-    for line in lines:    
-        results = rex.findall(line)
-        if results:
-            if '0' in results:
-                return 0
-            else:
-                return int(max(results))
+    result = rex.findall(text)
+    if result:
+        return int(result[-1])
     return None
     
 def fetch_new_posts(thread_id, first_page, last_page, start_from):
