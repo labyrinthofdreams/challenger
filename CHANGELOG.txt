@@ -1,3 +1,9 @@
+2.0b5.2
+- bugfix: If user's first post is !seen 0 we try to access non-existing variable
+
+2.0b5.1
+- Use better way to remove all quotes
+
 2.0b5
 - Verify forum url
 - Ignore quotes
