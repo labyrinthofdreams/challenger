@@ -383,6 +383,8 @@ def check_posts(sch, delay, threads, index):
                 continue
             # Check for the overwrite command
             # It overwrites all other values in the post
+            if 'users' not in thread:
+                thread['users'] = []
             seen_films = get_seen_films(post['text'])
             if seen_films is None:
                 # Ignore posts without seen films number
@@ -400,8 +402,6 @@ def check_posts(sch, delay, threads, index):
             # assigned without a problem
             # If user has posted before, update existing data
             # Otherwise add the new user and seen films
-            if 'users' not in thread:
-                thread['users'] = []
             idx = get_index(thread['users'], lambda x: x['username'] == post['user']['username'])
             if idx > -1:
                 thread['users'][idx]['seen'] = seen_films
