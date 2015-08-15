@@ -195,9 +195,9 @@ def get_highest_number(html):
     if not html:
         raise Exception('text parameter must not be None')
     # Ignore quoted posts
-    for elem in html.children:
-        if isinstance(elem, bs4.element.Tag) and elem.name == 'blockquote':
-            elem.decompose()    
+    quotes = html.find_all('blockquote')
+    for quote in quotes:
+        quote.decompose()
     # Replace newline tags with newlines
     text = unicode(html).replace('<br/>', '\n').replace('<br />', '\n').replace('<br>', '\n')
     # And extract the text without tags (this way users can use [b] and other styling on them)
