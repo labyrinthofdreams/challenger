@@ -392,9 +392,10 @@ def check_posts(sch, delay, threads, index):
             elif seen_films == 0:
                 # If we find the seen number value 0 from a post
                 # then remove that user from the results
-                idx = get_index(thread['users'], 
-                                lambda x: x['username'] == post['user']['username'])
-                thread['users'].pop(idx)
+                if len(thread['users']) > 0:
+                    idx = get_index(thread['users'], 
+                                    lambda x: x['username'] == post['user']['username'])
+                    thread['users'].pop(idx)
                 continue
             has_new_updates = True    
             # Get seen films for the user. Since this will go through

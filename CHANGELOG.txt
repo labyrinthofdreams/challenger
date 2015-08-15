@@ -1,3 +1,9 @@
+2.0b5.4
+- bugfix: If !seen 0 comes before any films, we try to pop() empty list
+
+2.0b5.3
+- Update changelog
+
 2.0b5.2
 - bugfix: If user's first post is !seen 0 we try to access non-existing variable
 
