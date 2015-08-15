@@ -474,6 +474,9 @@ if __name__ == '__main__':
         args = parser.parse_args()
         if args.reset and os.path.exists('data.json'):
             os.remove('data.json')
+        # Verify forum URL
+        if re.match('http://s15.zetaboards.com/.*/', FORUMURL) is None:
+            raise Exception('Invalid forum URL (make sure it ends with /)')
         login(USERNAME, PASSWORD)
         scheduler.enter(0, 1, check_posts, (scheduler, LONGDELAY, {}, 0))
         scheduler.run()
