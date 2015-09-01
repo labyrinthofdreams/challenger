@@ -214,7 +214,7 @@ def get_highest_number(html):
             result = multi_rx.match(line)
         if result:
             match = int(result.group(1))
-            if match > highest:
+            if highest is None or match > highest:
                 highest = match
     return highest          
     
