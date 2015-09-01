@@ -1,3 +1,6 @@
+2.0b5.6
+- bugfix: Delay was not working correctly
+
 2.0b5.5
 - bugfix: Check for None when getting the highest number in a post
 - Use html5lib instead of html.parser
