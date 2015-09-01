@@ -1,3 +1,7 @@
+2.0b5.5
+- bugfix: Check for None when getting the highest number in a post
+- Use html5lib instead of html.parser
+
 2.0b5.4
 - bugfix: If !seen 0 comes before any films, we try to pop() empty list
 

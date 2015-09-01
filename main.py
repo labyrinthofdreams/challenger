@@ -67,7 +67,7 @@ def get_page_count(thread_id):
     """Returns the number of pages in a thread as an integer"""
     url = os.path.join(FORUMURL, 'topic/{0}/1?x=25'.format(thread_id))
     response = session.get(url)
-    html = bs4.BeautifulSoup(response.text, 'html.parser')
+    html = bs4.BeautifulSoup(response.text, 'html5lib')
     pages = html.find('ul', class_='cat-pages')
     if not pages:
         return 1
@@ -79,7 +79,7 @@ def get_posts(thread_id, page):
     """Returns all the posts in a given thread_id on a given page"""
     url = os.path.join(FORUMURL, 'topic/{0}/{1}?x=25'.format(thread_id, page))
     response = session.get(url)
-    html = bs4.BeautifulSoup(response.text, 'html.parser')
+    html = bs4.BeautifulSoup(response.text, 'html5lib')
     return find_posts(html)
 
 def login(username, password):
@@ -126,7 +126,7 @@ def edit_post(text, forum_id, thread_id, post_id):
     response = session.get(url)
     if response.text.find('<td>You do not have permission to edit this post.<br />') > -1:
         raise Exception('You do not have permission to edit this post')
-    html = bs4.BeautifulSoup(response.text, 'html.parser')
+    html = bs4.BeautifulSoup(response.text, 'html5lib')
     params = {'mode': attr(html, 'mode'),
               'type': attr(html, 'type'),
               'ast': attr(html, 'ast'),
@@ -163,7 +163,7 @@ def submit_post(message, thread_id):
     """Submit new post to a thread (quick reply)"""
     url = os.path.join(FORUMURL, 'topic/{0}/1/'.format(thread_id))
     response = session.get(url)
-    html = bs4.BeautifulSoup(response.text, 'html.parser')
+    html = bs4.BeautifulSoup(response.text, 'html5lib')
     form = html.find('form', attrs={'action': os.path.join(FORUMURL, 'post/')})
     params = {'mode': attr(form, 'mode'),
               'type': attr(form, 'type'),
@@ -201,7 +201,7 @@ def get_highest_number(html):
     # Replace newline tags with newlines
     text = unicode(html).replace('<br/>', '\n').replace('<br />', '\n').replace('<br>', '\n')
     # And extract the text without tags (this way users can use [b] and other styling on them)
-    text = bs4.BeautifulSoup(text).text
+    text = bs4.BeautifulSoup(text, 'html5lib').text
     # Matches: 123. film title
     single_rx = re.compile('^([0-9]+)\\.\\s+')
     # Matches: 12-13. film title & 12.-13. film title
@@ -352,7 +352,7 @@ def check_posts(sch, delay, threads, index):
             thread['last_post_id'] = ''
         response = session.get(os.path.join(FORUMURL, \
                                         'topic/{0}/1/?x=25'.format(thread_id)))
-        html = bs4.BeautifulSoup(response.text, 'html.parser')
+        html = bs4.BeautifulSoup(response.text, 'html5lib')
         if 'title' not in thread:
             thread['title'] = html.title.string
         if 'first_post_id' not in thread:
