@@ -291,13 +291,6 @@ def get_seen_films(html):
 def check_posts(sch, delay, threads, index):
     """Check for new posts in threads"""
     try:
-        # We must wait SHORTDELAY seconds between each request when processing a queue
-        # But we'll wait LONGDELAY between when a queue has finished
-        # and before it starts again
-        if len(threads) == index + 1:
-            delay = LONGDELAY
-        else:
-            delay = SHORTDELAY
         # Get all thread data including users and their seen films
         threads = load_stats('data.json')
         # Get new threads to monitor
@@ -471,7 +464,14 @@ def check_posts(sch, delay, threads, index):
     except Exception, err:
         import traceback
         print traceback.format_exc()
-        print 'Error:', str(err)         
+        print 'Error:', str(err)
+    # We must wait SHORTDELAY seconds between each request when processing a queue
+    # But we'll wait LONGDELAY between when a queue has finished
+    # and before it starts again
+    if len(threads) == index:
+        delay = LONGDELAY
+    else:
+        delay = SHORTDELAY         
     sch.enter(delay, 1, check_posts, (sch, delay, threads, index))
 
 if __name__ == '__main__':
