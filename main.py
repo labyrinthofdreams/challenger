@@ -308,7 +308,6 @@ def check_posts(sch, delay, threads, index):
                 if DEBUG == 'on' or thread_id not in threads:
                     thread = {}
                     thread['id'] = thread_id
-                    thread['forum_id'] = config.get(section, 'forumid')
                     thread['section'] = section
                     thread['end_time'] = config.get(section, 'endtime')
                     thread['ignore'] = config.get(section, 'ignore').split(',')
@@ -346,6 +345,11 @@ def check_posts(sch, delay, threads, index):
         response = session.get(os.path.join(FORUMURL, \
                                         'topic/{0}/1/?x=25'.format(thread_id)))
         html = bs4.BeautifulSoup(response.text, 'html5lib')
+        if 'forum_id' not in thread:
+            nav = html.find('ul', id='nav')
+            link = nav.find_all('li')[-3]
+            href = link.find('a')['href']
+            thread['forum_id'] = re.search('([0-9]{7})', href).group(1)
         if 'title' not in thread:
             thread['title'] = html.title.string
         if 'first_post_id' not in thread:
