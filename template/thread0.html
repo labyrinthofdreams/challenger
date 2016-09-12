@@ -1,4 +1,3 @@
 [b]RESULTS:[/b]
 {% for entry in thread.users %}
-[url={{ entry.profile }}]{{ entry.username }}[/url]: [url={{ forum_url }}/single/?p={{ entry.last_post }}&t={{ thread.id }}]{{ entry.seen -}}[/url] 
-{% endfor %}
+[url={{ forum_url }}single/?p={{ entry.last_post }}&t={{ thread.id }}]{{ entry.seen -}}[/url] - [url={{ entry.profile }}]{{ entry.username }}[/url]{% endfor %}
