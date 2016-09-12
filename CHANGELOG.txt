@@ -1,3 +1,6 @@
+2.1b
+- Remove check for forum URL now that forum URL changed
+
 2.0b5.6
 - bugfix: Delay was not working correctly
 
