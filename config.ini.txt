@@ -1,6 +1,6 @@
 [forum]
 ; forum url
-url = http://s15.zetaboards.com/example/
+url = http://www.icmforum.com/
 ; forum username
 username = example
 ; forum password
