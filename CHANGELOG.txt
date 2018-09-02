@@ -1,3 +1,6 @@
+3.0
+- phpBB support
+
 2.1b
 - Remove check for forum URL now that forum URL changed
 
