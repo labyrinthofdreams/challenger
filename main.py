@@ -86,21 +86,20 @@ def login(username, password):
     """Log in using username and password"""
     if username is None or password is None:
         raise Exception(u'Username and password must be set')
-    args = {u'uname': username,
-            u'pw': password,
-            u'cookie_on': u'1',
-            u'tm': datetime.datetime.today().strftime(u'4/4/2014 3:%M:%S PM')}
+    args = {u'username': username,
+            u'password': password,
+            u'autologin': u'on',
+            u'login': u'Login',
+            u'redirect': u'./index.php?'}
     headers = {u'content-type': u'application/x-www-form-urlencoded'}
-    url = os.path.join(FORUMURL, u'login/log_in/')
+    url = os.path.join(FORUMURL, u'ucp.php?mode=login')
     resp = session.post(url, data=args, headers=headers, allow_redirects=False)
     if resp.status_code != requests.codes.ok:
         pass
         # raise resp.raise_for_status()
     elif len(resp.cookies) == 0:
-        if resp.text.find('You are logged in already') > -1:
-            print 'You\'re already logged in!'
-        else:
-            raise Exception(u'Login failed. Invalid username and/or password')
+        raise Exception(u'Login failed')
+    print resp.cookies
         
 def get_index(iterable, fun):
     """Return index as an integer when the function fun returns True
