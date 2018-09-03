@@ -1,3 +1,3 @@
 [b]SCOREBOARD:[/b]
 {% for entry in thread.users %}
-[url={{ forum_url }}viewtopic.php?p={{ entry.last_post }}#p{{ entry.last_post }}]{{ entry.seen -}}[/url] - [url={{ entry.profile }}]{{ entry.username }}[/url]{% endfor %}
+{{ entry.rank }}. [url={{ forum_url }}viewtopic.php?p={{ entry.last_post }}#p{{ entry.last_post }}]{{ entry.seen -}}[/url] - [url={{ entry.profile }}]{{ entry.username }}[/url]{% endfor %}

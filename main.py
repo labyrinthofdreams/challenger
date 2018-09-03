@@ -418,6 +418,15 @@ def check_posts(sch, delay, threads, index):
         else:
             # Sort list so that most number of seen films comes first
             thread['users'] = sorted(thread['users'], key=lambda k: k['seen'], reverse=True)
+            # Compute ranks
+            last_seen = 0
+            rank = 1
+            for user in thread['users']:
+                if last_seen != user['seen']:
+                    rank += sum(1 for u in thread['users'] if u['seen'] == last_seen)
+                user['rank'] = rank
+                last_seen = user['seen']
+                
         # Save the last post and page we processed
         if len(all_posts) > 0:
             thread['last_page'] = num_pages
