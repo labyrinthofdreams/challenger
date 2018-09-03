@@ -54,8 +54,8 @@ def find_posts(html):
         post = {}
         post['id'] = row.get('id')
         post['text'] = row.find('div', class_='content')
-        post['user'] = {'username': row.find('a', class_='username-coloured').string,
-                        'profile': row.find('a', class_='username-coloured').get('href')}
+        post['user'] = {'username': row.find('a', class_=['username', 'username-coloured']).string,
+                        'profile': row.find('a', class_=['username', 'username-coloured']).get('href')}              
         posts.append(post)
     return posts
 
