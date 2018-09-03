@@ -440,7 +440,9 @@ def check_posts(sch, delay, threads, index):
             render = tpl.render(thread=thread, forum_url=FORUMURL)
             if DEBUG == 'off':
                 # Submit new post
-                submit_post(render, thread_id)
+                # TODO: Fix for phpBB
+                #submit_post(render, thread_id)
+                print render
                 # Remove thread from queue and config
                 del threads[thread_id]
                 config.remove_section(thread['section'])
